@@ -1,0 +1,1368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Orbit Clock with Realistic Rocket</title>
+<style>
+body{
+  margin:0;
+  height:100vh;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  background:#020617;
+  font-family:sans-serif;
+  overflow:hidden;
+}
+
+/* Twinkling stars */
+.star{
+  position:absolute;
+  width:2px;
+  height:2px;
+  background:white;
+  border-radius:50%;
+  opacity:0.8;
+  animation:twinkle 2s infinite alternate;
+}
+@keyframes twinkle{
+  0%{opacity:0.2;}
+  50%{opacity:1;}
+  100%{opacity:0.2;}
+}
+
+/* Clock container */
+.clock{
+  width:420px;
+  height:420px;
+  position:relative;
+}
+
+/* Sun */
+.sun{
+  position:absolute;
+  width:32px;
+  height:32px;
+  background:gold;
+  border-radius:50%;
+  top:50%;
+  left:50%;
+  transform:translate(-50%,-50%);
+  box-shadow:0 0 30px gold,0 0 70px orange;
+}
+
+/* Orbits */
+.orbit{
+  position:absolute;
+  border-radius:50%;
+  top:50%;
+  left:50%;
+  transform:translate(-50%,-50%);
+  border:1px solid rgba(255,255,255,.12);
+  box-shadow:0 0 12px rgba(255,255,255,.15);
+}
+
+.hourOrbit{width:320px;height:320px;}
+.minuteOrbit{width:240px;height:240px;}
+.secondOrbit{width:170px;height:170px;}
+
+/* Planets */
+.planet{
+  position:absolute;
+  border-radius:50%;
+  transform:translate(-50%,-50%);
+  text-align:center;
+  transition: all 0.5s ease-out;
+}
+
+.hourPlanet{
+  width:16px;
+  height:16px;
+  background:#60a5fa;
+  box-shadow:0 0 10px #60a5fa;
+}
+.minutePlanet{
+  width:12px;
+  height:12px;
+  background:#34d399;
+  box-shadow:0 0 10px #34d399;
+}
+.secondPlanet{
+  width:26px;
+  height:20px;
+  background:transparent;
+  box-shadow:none;
+  border-radius:0;
+  overflow:visible;
+}
+
+/* Labels */
+.label{
+  position:absolute;
+  color:white;
+  font-size:12px;
+  transform:translate(-50%,-150%);
+  pointer-events:none;
+}
+
+/* Digital Time */
+.digitalTime{
+  position:absolute;
+  width:100%;
+  bottom:20px;
+  text-align:center;
+  color:#fff;
+  font-size:24px;
+  font-family:monospace;
+  padding:10px 0;
+  background:
+    radial-gradient(ellipse 120% 60% at 50% 50%,
+      rgba(80,60,140,0.35) 0%,
+      rgba(40,30,100,0.25) 20%,
+      rgba(20,15,60,0.15) 40%,
+      transparent 70%),
+    radial-gradient(ellipse 100% 40% at 40% 55%,
+      rgba(100,80,180,0.2) 0%,
+      rgba(60,40,120,0.15) 30%,
+      transparent 60%),
+    radial-gradient(ellipse 80% 35% at 65% 45%,
+      rgba(140,100,200,0.15) 0%,
+      rgba(80,50,150,0.1) 25%,
+      transparent 55%),
+    radial-gradient(ellipse 200% 100% at 50% 50%,
+      rgba(10,5,30,0.4) 0%,
+      rgba(5,2,20,0.3) 40%,
+      transparent 80%);
+  border-radius:12px;
+  overflow:hidden;
+  text-shadow:0 0 8px rgba(180,160,255,0.6),0 0 20px rgba(120,100,200,0.3);
+  z-index:1;
+}
+.digitalTime::before{
+  content:'';
+  position:absolute;
+  top:0;left:0;right:0;bottom:0;
+  background-image:
+    radial-gradient(1px 1px at 10% 20%, rgba(255,255,255,0.7) 0%, transparent 100%),
+    radial-gradient(1px 1px at 25% 60%, rgba(200,180,255,0.6) 0%, transparent 100%),
+    radial-gradient(1px 1px at 40% 30%, rgba(255,255,255,0.5) 0%, transparent 100%),
+    radial-gradient(1px 1px at 55% 70%, rgba(180,200,255,0.6) 0%, transparent 100%),
+    radial-gradient(1px 1px at 70% 15%, rgba(255,255,255,0.7) 0%, transparent 100%),
+    radial-gradient(1px 1px at 85% 50%, rgba(200,180,255,0.5) 0%, transparent 100%),
+    radial-gradient(1px 1px at 15% 80%, rgba(255,220,255,0.4) 0%, transparent 100%),
+    radial-gradient(1px 1px at 60% 45%, rgba(255,255,255,0.6) 0%, transparent 100%),
+    radial-gradient(1.5px 1.5px at 30% 40%, rgba(255,255,255,0.8) 0%, transparent 100%),
+    radial-gradient(1.5px 1.5px at 75% 35%, rgba(200,200,255,0.7) 0%, transparent 100%),
+    radial-gradient(1px 1px at 90% 75%, rgba(255,200,255,0.5) 0%, transparent 100%),
+    radial-gradient(1px 1px at 5% 50%, rgba(255,255,255,0.4) 0%, transparent 100%),
+    radial-gradient(1px 1px at 50% 10%, rgba(180,180,255,0.6) 0%, transparent 100%),
+    radial-gradient(1px 1px at 45% 85%, rgba(255,255,255,0.5) 0%, transparent 100%),
+    radial-gradient(1px 1px at 80% 90%, rgba(200,160,255,0.4) 0%, transparent 100%);
+  pointer-events:none;
+  z-index:-1;
+  animation:milkyShimmer 4s ease-in-out infinite alternate;
+}
+@keyframes milkyShimmer{
+  0%{opacity:0.7;filter:brightness(0.9);}
+  50%{opacity:1;filter:brightness(1.1);}
+  100%{opacity:0.8;filter:brightness(1);}
+}
+
+/* Meteor */
+.meteor{
+  position:absolute;
+  width:4px;
+  height:2px;
+  background:yellow;
+  border-radius:50%;
+  box-shadow:0 0 8px yellow,0 0 12px orange;
+  opacity:0;
+  pointer-events:none;
+}
+
+/* Rocket */
+.rocket{
+  position:absolute;
+  width:12px;
+  height:32px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  transform-origin:center center;
+}
+
+/* Nose cone */
+.rocket .nose{
+  width:0;
+  height:0;
+  border-left:6px solid transparent;
+  border-right:6px solid transparent;
+  border-bottom:10px solid red;
+}
+
+/* Body */
+.rocket .body{
+  width:8px;
+  height:14px;
+  background:#ccc;
+  border-radius:4px;
+  position:relative;
+}
+
+/* Fins */
+.rocket .fin-left, .rocket .fin-right{
+  position:absolute;
+  bottom:0;
+  width:4px;
+  height:4px;
+  background:red;
+}
+.rocket .fin-left{left:-4px; transform:rotate(-30deg);}
+.rocket .fin-right{right:-4px; transform:rotate(30deg);}
+
+/* Flame */
+.rocket .flame{
+  width:4px;
+  height:6px;
+  background:orange;
+  border-radius:50%;
+  margin-top:2px;
+  box-shadow:0 0 8px orange,0 0 12px yellow;
+  animation:flame 0.2s infinite alternate;
+}
+@keyframes flame{
+  0%{height:4px;}
+  100%{height:8px;}
+}
+
+/* Explosion */
+.explosion{
+  position:absolute;
+  width:10px;
+  height:10px;
+  border-radius:50%;
+  background:orange;
+  box-shadow:0 0 12px yellow,0 0 20px red;
+  pointer-events:none;
+  opacity:1;
+}
+
+/* Footer */
+footer{
+  width:100%;
+  text-align:center;
+  padding:10px 0;
+  color:white;
+  font-size:14px;
+  background:rgba(0,0,0,0.2);
+  position:absolute;
+  bottom:0;
+}
+
+/* ── Floating Astronaut ── */
+.astronaut{
+  position:absolute;
+  pointer-events:none;
+  z-index:10;
+}
+.astronaut svg{
+  filter:drop-shadow(0 0 6px rgba(255,255,255,0.4));
+}
+
+/* ── ISS Space Station ── */
+.iss-wrapper{
+  position:absolute;
+  pointer-events:none;
+  z-index:8;
+}
+.iss-wrapper svg{
+  filter:drop-shadow(0 0 8px rgba(100,200,255,0.5));
+}
+
+/* ── Satellites orbiting ISS ── */
+.sat{
+  position:absolute;
+  width:6px;
+  height:6px;
+  pointer-events:none;
+  z-index:9;
+}
+.sat-body{
+  width:4px;
+  height:4px;
+  background:#aad4ff;
+  border-radius:1px;
+  position:absolute;
+  top:1px;left:1px;
+  box-shadow:0 0 4px #aad4ff,0 0 8px #5bc0ff;
+}
+.sat-panel-l,.sat-panel-r{
+  position:absolute;
+  width:6px;
+  height:2px;
+  background:linear-gradient(90deg,#3b82f6,#60a5fa);
+  top:2px;
+  box-shadow:0 0 3px #3b82f6;
+}
+.sat-panel-l{right:100%;margin-right:0px;}
+.sat-panel-r{left:100%;margin-left:0px;}
+.sat-thrust{
+  position:absolute;
+  width:2px;
+  height:3px;
+  background:orange;
+  border-radius:50%;
+  bottom:-3px;
+  left:2px;
+  box-shadow:0 0 4px orange,0 0 6px yellow;
+  animation:satThrust 0.15s infinite alternate;
+}
+@keyframes satThrust{
+  0%{height:2px;opacity:0.7;}
+  100%{height:4px;opacity:1;}
+}
+
+/* ── Black Hole ── */
+.blackhole{
+  position:absolute;
+  pointer-events:none;
+  z-index:5;
+  transform:translate(-50%,-50%);
+}
+.bh-core{
+  width:36px;
+  height:36px;
+  background:radial-gradient(circle,#000 55%,#0a0015 70%,transparent 100%);
+  border-radius:50%;
+  position:absolute;
+  top:50%;left:50%;
+  transform:translate(-50%,-50%);
+  box-shadow:0 0 25px 8px rgba(80,0,120,0.7),0 0 50px 15px rgba(40,0,80,0.4);
+}
+.bh-disk{
+  width:76px;
+  height:76px;
+  position:absolute;
+  top:50%;left:50%;
+  transform:translate(-50%,-50%);
+  border-radius:50%;
+  border:3px solid transparent;
+  border-top-color:rgba(255,140,40,0.8);
+  border-right-color:rgba(255,80,200,0.6);
+  border-bottom-color:rgba(200,60,255,0.5);
+  border-left-color:rgba(255,200,60,0.7);
+  animation:bhSpin 3s linear infinite;
+  box-shadow:0 0 16px rgba(255,100,50,0.5),inset 0 0 16px rgba(180,60,255,0.4);
+}
+.bh-disk2{
+  width:60px;
+  height:60px;
+  position:absolute;
+  top:50%;left:50%;
+  transform:translate(-50%,-50%);
+  border-radius:50%;
+  border:2px solid transparent;
+  border-top-color:rgba(255,200,100,0.6);
+  border-bottom-color:rgba(180,80,255,0.5);
+  animation:bhSpin 2s linear infinite reverse;
+}
+.bh-glow{
+  width:90px;
+  height:90px;
+  position:absolute;
+  top:50%;left:50%;
+  transform:translate(-50%,-50%);
+  border-radius:50%;
+  background:radial-gradient(circle,transparent 40%,rgba(120,40,200,0.15) 60%,rgba(200,80,255,0.08) 80%,transparent 100%);
+  animation:bhPulse 2s ease-in-out infinite alternate;
+}
+@keyframes bhSpin{
+  0%{transform:translate(-50%,-50%) rotate(0deg);}
+  100%{transform:translate(-50%,-50%) rotate(360deg);}
+}
+@keyframes bhPulse{
+  0%{opacity:0.6;transform:translate(-50%,-50%) scale(1);}
+  100%{opacity:1;transform:translate(-50%,-50%) scale(1.15);}
+}
+
+/* ── Big Bang Flash ── */
+.bigbang-flash{
+  position:fixed;
+  top:0;left:0;
+  width:100vw;height:100vh;
+  background:white;
+  z-index:9999;
+  pointer-events:none;
+  opacity:0;
+}
+/* ── Shockwave Ring ── */
+.shockwave{
+  position:absolute;
+  border-radius:50%;
+  border:4px solid rgba(255,200,100,0.8);
+  box-shadow:0 0 30px rgba(255,150,50,0.6),0 0 60px rgba(255,100,200,0.3),inset 0 0 20px rgba(255,255,200,0.2);
+  pointer-events:none;
+  z-index:100;
+  transform:translate(-50%,-50%);
+}
+/* ── Debris Particles ── */
+.debris{
+  position:absolute;
+  border-radius:50%;
+  pointer-events:none;
+  z-index:99;
+}
+/* ── Suck-in effect for eaten objects ── */
+.being-eaten{
+  transition:all 0.6s cubic-bezier(0.6,0,1,1) !important;
+}
+
+/* ── Rocket Collision Explosion ── */
+.rocket-collision{
+  position:absolute;
+  pointer-events:none;
+  z-index:50;
+  transform:translate(-50%,-50%);
+}
+.collision-core{
+  width:40px;
+  height:40px;
+  background:radial-gradient(circle,#fff 0%,#ff6 30%,#f80 55%,rgba(255,0,0,0.6) 75%,transparent 100%);
+  border-radius:50%;
+  position:absolute;
+  top:50%;left:50%;
+  transform:translate(-50%,-50%);
+  box-shadow:0 0 40px #ff6,0 0 80px #f80,0 0 120px rgba(255,0,0,0.5);
+}
+.collision-ring{
+  position:absolute;
+  top:50%;left:50%;
+  transform:translate(-50%,-50%);
+  border-radius:50%;
+  border:3px solid rgba(255,200,50,0.8);
+  box-shadow:0 0 20px rgba(255,150,0,0.6),0 0 40px rgba(255,80,0,0.3);
+}
+.collision-spark{
+  position:absolute;
+  border-radius:50%;
+  pointer-events:none;
+  z-index:51;
+}
+
+</style>
+<body>
+
+<!-- Stars -->
+<script>
+for(let i=0;i<120;i++){
+  const star=document.createElement("div");
+  star.className="star";
+  star.style.left=Math.random()*window.innerWidth+"px";
+  star.style.top=Math.random()*window.innerHeight+"px";
+  star.style.width=1+Math.random()*2+"px";
+  star.style.height=star.style.width;
+  star.style.animationDuration=(1+Math.random()*3)+"s";
+  document.body.appendChild(star);
+}
+</script>
+
+<!-- Clock -->
+<div class="clock">
+  <div class="sun"></div>
+  <div class="orbit hourOrbit"></div>
+  <div class="orbit minuteOrbit"></div>
+  <div class="orbit secondOrbit"></div>
+
+  <div class="planet hourPlanet" id="hour"><div class="label">Hour</div></div>
+  <div class="planet minutePlanet" id="minute"><div class="label">Minute</div></div>
+  <div class="planet secondPlanet" id="second">
+    <svg width="26" height="20" viewBox="0 0 26 20" style="overflow:visible;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);">
+      <!-- ring back -->
+      <ellipse cx="13" cy="11" rx="13" ry="4" fill="none" stroke="rgba(210,180,140,0.35)" stroke-width="1.5"/>
+      <!-- planet body -->
+      <circle cx="13" cy="10" r="5.5" fill="#e8b84a"/>
+      <ellipse cx="13" cy="8.5" rx="5" ry="2.5" fill="rgba(255,220,130,0.4)"/>
+      <ellipse cx="13" cy="11.5" rx="5" ry="2" fill="rgba(180,120,40,0.3)"/>
+      <!-- band stripes -->
+      <ellipse cx="13" cy="9" rx="5.3" ry="0.7" fill="rgba(200,160,60,0.35)"/>
+      <ellipse cx="13" cy="11" rx="5.3" ry="0.6" fill="rgba(170,120,50,0.3)"/>
+      <!-- ring front -->
+      <path d="M0 11 Q6 15 13 15 Q20 15 26 11" fill="none" stroke="#d2b48c" stroke-width="1.8" stroke-linecap="round"/>
+      <path d="M1.5 11.5 Q7 14 13 14 Q19 14 24.5 11.5" fill="none" stroke="rgba(210,180,140,0.5)" stroke-width="1"/>
+      <!-- glow -->
+      <circle cx="13" cy="10" r="7" fill="none" stroke="rgba(232,184,74,0.15)" stroke-width="2"/>
+    </svg>
+    <div class="label">Second</div>
+  </div>
+
+  <div class="digitalTime" id="digitalTime">00:00:00</div>
+</div>
+
+<!-- Footer -->
+<footer>© Orbit Clock | Build By: Arunim's IT Caffe</footer>
+
+<script>
+// Orbit Clock
+const hourPlanet = document.getElementById("hour");
+const minutePlanet = document.getElementById("minute");
+const secondPlanet = document.getElementById("second");
+const digital = document.getElementById("digitalTime");
+
+const center = 210;
+const rHour = 160;
+const rMinute = 120;
+const rSecond = 85;
+let falling=false;
+
+function updateClock(){
+  const now=new Date();
+  const s=now.getSeconds()+now.getMilliseconds()/1000;
+  const m=now.getMinutes()+s/60;
+  const h=now.getHours()%12+m/60;
+
+  const angleS=s*6*Math.PI/180;
+  const angleM=m*6*Math.PI/180;
+  const angleH=h*30*Math.PI/180;
+
+  if(!falling){
+    secondPlanet.style.left=center+rSecond*Math.sin(angleS)+"px";
+    secondPlanet.style.top=center-rSecond*Math.cos(angleS)+"px";
+
+    minutePlanet.style.left=center+rMinute*Math.sin(angleM)+"px";
+    minutePlanet.style.top=center-rMinute*Math.cos(angleM)+"px";
+
+    hourPlanet.style.left=center+rHour*Math.sin(angleH)+"px";
+    hourPlanet.style.top=center-rHour*Math.cos(angleH)+"px";
+  }
+
+  const hh=now.getHours().toString().padStart(2,'0');
+  const mm=now.getMinutes().toString().padStart(2,'0');
+  const ss=now.getSeconds().toString().padStart(2,'0');
+  digital.textContent=`${hh}:${mm}:${ss}`;
+
+  requestAnimationFrame(updateClock);
+}
+updateClock();
+
+// Meteors
+function createMeteor(){
+  const meteor=document.createElement("div");
+  meteor.className="meteor";
+  meteor.style.left=Math.random()*window.innerWidth+"px";
+  meteor.style.top=Math.random()*window.innerHeight/2+"px";
+  document.body.appendChild(meteor);
+
+  meteor.style.opacity=1;
+  let distance=0;
+  const maxDistance=300+Math.random()*200;
+  const angle=Math.random()*Math.PI/4+Math.PI/6;
+
+  function animate(){
+    distance+=6;
+    const dx=Math.cos(angle)*distance;
+    const dy=Math.sin(angle)*distance;
+    meteor.style.transform=`translate(${dx}px,${dy}px)`;
+    meteor.style.opacity=1-distance/maxDistance;
+    if(distance<maxDistance) requestAnimationFrame(animate);
+    else meteor.remove();
+  }
+  animate();
+}
+setInterval(createMeteor,700);
+
+// Gravity Fall
+function gravityFall(){
+  falling=true;
+  const planets=[hourPlanet,minutePlanet,secondPlanet];
+  let step=0;
+  const steps=40;
+  const interval=setInterval(()=>{
+    step++;
+    const t=step/steps;
+    planets.forEach(p=>{
+      p.style.left=center+(parseFloat(p.style.left||center)-center)*(1-t)+"px";
+      p.style.top=center+(parseFloat(p.style.top||center)-center)*(1-t)+"px";
+    });
+    if(step>=steps){clearInterval(interval); falling=false;}
+  },20);
+}
+
+let lastHour=new Date().getHours();
+setInterval(()=>{
+  const now=new Date();
+  if(now.getHours()!==lastHour){gravityFall(); lastHour=now.getHours();}
+},1000);
+
+// ═══════════════════════════════════════════
+// ROCKETS — horizontal (L→R) & vertical (T↔B)
+// with dramatic collision detection
+// ═══════════════════════════════════════════
+// Track active rockets for collision detection
+const activeRockets={h:null, v:null};
+
+function buildRocketDOM(){
+  const rocket=document.createElement("div");
+  rocket.className="rocket";
+  const nose=document.createElement("div"); nose.className="nose";
+  const body=document.createElement("div"); body.className="body";
+  const flame=document.createElement("div"); flame.className="flame";
+  const finL=document.createElement("div"); finL.className="fin-left";
+  const finR=document.createElement("div"); finR.className="fin-right";
+  body.appendChild(finL); body.appendChild(finR);
+  rocket.appendChild(nose); rocket.appendChild(body); rocket.appendChild(flame);
+  return rocket;
+}
+
+// ── Dramatic Collision Explosion ──
+function triggerRocketCollision(cx,cy){
+  // 1) Glowing core that expands and fades
+  const coll=document.createElement('div');
+  coll.className='rocket-collision';
+  coll.style.left=cx+'px'; coll.style.top=cy+'px';
+  coll.style.width='80px'; coll.style.height='80px';
+  coll.innerHTML='<div class="collision-core"></div>';
+  document.body.appendChild(coll);
+  const core=coll.querySelector('.collision-core');
+  const cStart=performance.now();
+  (function animCore(now){
+    const t=Math.min((now-cStart)/800,1);
+    const s=1+t*3;
+    core.style.transform='translate(-50%,-50%) scale('+s+')';
+    core.style.opacity=String(1-t);
+    if(t<1) requestAnimationFrame(animCore);
+    else coll.remove();
+  })(performance.now());
+
+  // 2) Multiple expanding shockwave rings
+  for(let w=0;w<3;w++){
+    setTimeout(()=>{
+      const ring=document.createElement('div');
+      ring.className='collision-ring';
+      ring.style.position='absolute';
+      ring.style.left=cx+'px'; ring.style.top=cy+'px';
+      ring.style.width='10px'; ring.style.height='10px';
+      ring.style.zIndex='52';
+      document.body.appendChild(ring);
+      const rStart=performance.now();
+      (function animRing(now){
+        const t=Math.min((now-rStart)/600,1);
+        const size=10+t*200;
+        ring.style.width=size+'px'; ring.style.height=size+'px';
+        ring.style.opacity=String(1-t);
+        ring.style.borderWidth=Math.max(1,3*(1-t))+'px';
+        ring.style.transform='translate(-50%,-50%)';
+        if(t<1) requestAnimationFrame(animRing);
+        else ring.remove();
+      })(performance.now());
+    }, w*100);
+  }
+
+  // 3) Flying sparks / debris in all directions
+  const sparkColors=['#fff','#ff6','#f80','#f44','#fa0','#ff0','#f4f','#4ef'];
+  for(let i=0;i<30;i++){
+    const sp=document.createElement('div');
+    sp.className='collision-spark';
+    const size=2+Math.random()*5;
+    sp.style.width=size+'px'; sp.style.height=size+'px';
+    const col=sparkColors[Math.floor(Math.random()*sparkColors.length)];
+    sp.style.background=col;
+    sp.style.boxShadow='0 0 '+(size*3)+'px '+col;
+    sp.style.left=cx+'px'; sp.style.top=cy+'px';
+    document.body.appendChild(sp);
+    const angle=Math.random()*Math.PI*2;
+    const speed=80+Math.random()*250;
+    const dur=500+Math.random()*700;
+    const sStart=performance.now();
+    (function animSpark(now){
+      const t=Math.min((now-sStart)/dur,1);
+      const ease=1-Math.pow(1-t,3);
+      const dist=speed*ease;
+      // Add slight gravity to sparks
+      const grav=t*t*60;
+      sp.style.left=(cx+Math.cos(angle)*dist)+'px';
+      sp.style.top=(cy+Math.sin(angle)*dist+grav)+'px';
+      sp.style.opacity=String(t<0.6?1:(1-(t-0.6)/0.4));
+      const sc=size*(1-t*0.6);
+      sp.style.width=sc+'px'; sp.style.height=sc+'px';
+      if(t<1) requestAnimationFrame(animSpark);
+      else sp.remove();
+    })(performance.now());
+  }
+
+  // 4) Brief screen flash
+  const flash=document.createElement('div');
+  flash.style.cssText='position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(255,200,50,0.3);z-index:9998;pointer-events:none;';
+  document.body.appendChild(flash);
+  const fStart=performance.now();
+  (function animFlash(now){
+    const t=(now-fStart)/400;
+    flash.style.opacity=String(Math.max(0,1-t));
+    if(t<1) requestAnimationFrame(animFlash);
+    else flash.remove();
+  })(performance.now());
+
+  // 5) Small screen shake
+  const shakeStart=performance.now();
+  (function shake(now){
+    const t=(now-shakeStart)/400;
+    if(t<1){
+      const i=5*(1-t);
+      document.body.style.transform='translate('+(Math.random()-0.5)*i+'px,'+(Math.random()-0.5)*i+'px)';
+      requestAnimationFrame(shake);
+    } else {
+      document.body.style.transform='';
+    }
+  })(performance.now());
+}
+
+// Check collision between horizontal and vertical rockets
+function checkRocketCollision(){
+  if(!activeRockets.h||!activeRockets.v) return false;
+  if(!activeRockets.h.alive||!activeRockets.v.alive) return false;
+  const hx=activeRockets.h.x, hy=activeRockets.h.y;
+  const vx=activeRockets.v.x, vy=activeRockets.v.y;
+  const dist=Math.hypot(hx-vx, hy-vy);
+  if(dist<30){
+    const cx=(hx+vx)/2, cy=(hy+vy)/2;
+    // Kill both rockets
+    activeRockets.h.alive=false;
+    activeRockets.v.alive=false;
+    activeRockets.h.el.remove();
+    activeRockets.v.el.remove();
+    triggerRocketCollision(cx,cy);
+    // Respawn both after a delay
+    setTimeout(createHorizontalRocket,1500);
+    setTimeout(createVerticalRocket,2000);
+    return true;
+  }
+  return false;
+}
+
+// ── Horizontal Rocket (left → right, crashes at random X) ──
+function createHorizontalRocket(){
+  const rocket=buildRocketDOM();
+  // Rotate 90° so nose points right
+  rocket.style.transform='rotate(90deg)';
+  document.body.appendChild(rocket);
+
+  const startY=Math.random()*(window.innerHeight-100)+50;
+  let x=-50;
+  const speed=2+Math.random()*2;
+  const crashX=Math.random()*window.innerWidth;
+  const info={el:rocket, x:x, y:startY, alive:true};
+  activeRockets.h=info;
+
+  function animate(){
+    if(!info.alive) return;
+    if(x<crashX){
+      x+=speed;
+      info.x=x; info.y=startY;
+      rocket.style.left=x+"px";
+      rocket.style.top=startY+"px";
+      if(!checkRocketCollision()) requestAnimationFrame(animate);
+    }else{
+      info.alive=false;
+      const explosion=document.createElement("div");
+      explosion.className="explosion";
+      explosion.style.left=x+"px";
+      explosion.style.top=startY+"px";
+      document.body.appendChild(explosion);
+      setTimeout(()=>explosion.remove(),500);
+      rocket.remove();
+      setTimeout(createHorizontalRocket,1000);
+    }
+  }
+  animate();
+}
+
+// ── Vertical Rocket (top ↔ bottom) ──
+function createVerticalRocket(){
+  const rocket=buildRocketDOM();
+  document.body.appendChild(rocket);
+
+  const startX=Math.random()*(window.innerWidth-100)+50;
+  const goingDown=Math.random()>0.5;
+  let y=goingDown?-50:window.innerHeight+50;
+  const speed=2.5+Math.random()*2;
+  const crashY=Math.random()*(window.innerHeight*0.6)+(window.innerHeight*0.2);
+  // Point nose in travel direction
+  rocket.style.transform=goingDown?'rotate(180deg)':'rotate(0deg)';
+  const info={el:rocket, x:startX, y:y, alive:true};
+  activeRockets.v=info;
+
+  function animate(){
+    if(!info.alive) return;
+    const reachedCrash=goingDown?(y>crashY):(y<crashY);
+    if(!reachedCrash){
+      y+=goingDown?speed:-speed;
+      info.x=startX; info.y=y;
+      rocket.style.left=startX+"px";
+      rocket.style.top=y+"px";
+      if(!checkRocketCollision()) requestAnimationFrame(animate);
+    }else{
+      info.alive=false;
+      const explosion=document.createElement("div");
+      explosion.className="explosion";
+      explosion.style.left=startX+"px";
+      explosion.style.top=y+"px";
+      document.body.appendChild(explosion);
+      setTimeout(()=>explosion.remove(),500);
+      rocket.remove();
+      setTimeout(createVerticalRocket,1200);
+    }
+  }
+  animate();
+}
+
+createHorizontalRocket();
+createVerticalRocket();
+
+// ═══════════════════════════════════════════
+// FLOATING ASTRONAUT — drifts up & down
+// ═══════════════════════════════════════════
+function createAstronaut(){
+  const a=document.createElement("div");
+  a.className="astronaut";
+  // Detailed astronaut SVG — helmet, visor, backpack, limbs
+  a.innerHTML=`<svg width="50" height="64" viewBox="0 0 50 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <!-- backpack -->
+    <rect x="10" y="22" width="8" height="18" rx="2" fill="#555"/>
+    <rect x="11" y="24" width="2" height="4" rx="1" fill="#888"/>
+    <rect x="14" y="24" width="2" height="4" rx="1" fill="#888"/>
+    <!-- body / suit -->
+    <rect x="17" y="22" width="16" height="20" rx="4" fill="#e8e8e8" stroke="#ccc" stroke-width="0.5"/>
+    <!-- chest detail -->
+    <rect x="20" y="25" width="10" height="3" rx="1" fill="#ddd"/>
+    <rect x="22" y="26" width="3" height="1.5" rx="0.5" fill="#f44"/>
+    <rect x="26" y="26" width="2" height="1.5" rx="0.5" fill="#4a4"/>
+    <!-- helmet -->
+    <ellipse cx="25" cy="17" rx="10" ry="11" fill="#e8e8e8" stroke="#ccc" stroke-width="0.5"/>
+    <!-- visor -->
+    <ellipse cx="25" cy="16" rx="7" ry="7" fill="#1a1a3e"/>
+    <ellipse cx="25" cy="15" rx="6.5" ry="6" fill="url(#visor)"/>
+    <!-- visor glare -->
+    <ellipse cx="22" cy="13" rx="2" ry="1.5" fill="rgba(255,255,255,0.25)" transform="rotate(-15 22 13)"/>
+    <!-- left arm -->
+    <rect x="6" y="26" width="12" height="4" rx="2" fill="#e8e8e8" stroke="#ccc" stroke-width="0.3"/>
+    <circle cx="6" cy="28" r="2.5" fill="#e0e0e0" stroke="#bbb" stroke-width="0.3"/>
+    <!-- right arm -->
+    <rect x="32" y="24" width="12" height="4" rx="2" fill="#e8e8e8" stroke="#ccc" stroke-width="0.3" transform="rotate(20 38 26)"/>
+    <circle cx="43" cy="22" r="2.5" fill="#e0e0e0" stroke="#bbb" stroke-width="0.3"/>
+    <!-- left leg -->
+    <rect x="18" y="41" width="5" height="14" rx="2" fill="#e8e8e8" stroke="#ccc" stroke-width="0.3" transform="rotate(8 20 41)"/>
+    <ellipse cx="20" cy="56" rx="3.5" ry="2" fill="#ddd" stroke="#bbb" stroke-width="0.3"/>
+    <!-- right leg -->
+    <rect x="27" y="41" width="5" height="14" rx="2" fill="#e8e8e8" stroke="#ccc" stroke-width="0.3" transform="rotate(-5 29 41)"/>
+    <ellipse cx="30" cy="56" rx="3.5" ry="2" fill="#ddd" stroke="#bbb" stroke-width="0.3"/>
+    <!-- tether line -->
+    <path d="M18 34 Q5 45 2 60" stroke="#aaa" stroke-width="0.7" fill="none" stroke-dasharray="2 2"/>
+    <defs>
+      <radialGradient id="visor" cx="40%" cy="35%">
+        <stop offset="0%" stop-color="#6ec6ff" stop-opacity="0.6"/>
+        <stop offset="60%" stop-color="#1a3a6e" stop-opacity="0.85"/>
+        <stop offset="100%" stop-color="#0a0a2e"/>
+      </radialGradient>
+    </defs>
+  </svg>`;
+  document.body.appendChild(a);
+
+  // Random starting position
+  let x=Math.random()*(window.innerWidth-60)+30;
+  let y=Math.random()*(window.innerHeight-80)+40;
+  const speedX=(Math.random()-0.5)*0.3;
+  let baseY=y;
+  let bobPhase=Math.random()*Math.PI*2;
+  let rot=0;
+  const rotSpeed=(Math.random()-0.5)*0.4;
+
+  function drift(){
+    bobPhase+=0.012;
+    rot+=rotSpeed;
+    y=baseY+Math.sin(bobPhase)*60;
+    x+=speedX;
+    // wrap around horizontally
+    if(x>window.innerWidth+60) x=-60;
+    if(x<-60) x=window.innerWidth+60;
+    a.style.left=x+"px";
+    a.style.top=y+"px";
+    a.style.transform=`rotate(${rot}deg)`;
+    requestAnimationFrame(drift);
+  }
+  drift();
+}
+// Spawn 2 astronauts
+createAstronaut();
+setTimeout(createAstronaut,4000);
+
+// ═══════════════════════════════════════════
+// ISS SPACE STATION — moves left ↔ right
+// ═══════════════════════════════════════════
+function createISS(){
+  const iss=document.createElement("div");
+  iss.className="iss-wrapper";
+  iss.innerHTML=`<svg width="140" height="50" viewBox="0 0 140 50" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <!-- main truss -->
+    <rect x="10" y="23" width="120" height="4" rx="1" fill="#b0b0b0" stroke="#888" stroke-width="0.5"/>
+    <!-- center module (Destiny/Unity) -->
+    <rect x="52" y="12" width="36" height="26" rx="4" fill="#ccc" stroke="#999" stroke-width="0.5"/>
+    <rect x="55" y="15" width="6" height="4" rx="1" fill="#7ab8e0"/>
+    <rect x="63" y="15" width="6" height="4" rx="1" fill="#7ab8e0"/>
+    <rect x="55" y="31" width="14" height="3" rx="1" fill="#aaa"/>
+    <!-- port module -->
+    <rect x="30" y="15" width="24" height="20" rx="3" fill="#d4d4d4" stroke="#aaa" stroke-width="0.5"/>
+    <circle cx="42" cy="25" r="4" fill="#1a1a3e" stroke="#666" stroke-width="0.5"/>
+    <circle cx="42" cy="25" r="2.5" fill="#2a4a7e"/>
+    <!-- starboard module -->
+    <rect x="86" y="15" width="24" height="20" rx="3" fill="#d4d4d4" stroke="#aaa" stroke-width="0.5"/>
+    <rect x="90" y="18" width="5" height="3" rx="1" fill="#7ab8e0"/>
+    <rect x="97" y="18" width="5" height="3" rx="1" fill="#7ab8e0"/>
+    <!-- solar panel left 1 -->
+    <rect x="2" y="2" width="18" height="8" rx="1" fill="#2563eb" stroke="#1e40af" stroke-width="0.5"/>
+    <line x1="5" y1="2" x2="5" y2="10" stroke="#1e40af" stroke-width="0.3"/>
+    <line x1="8" y1="2" x2="8" y2="10" stroke="#1e40af" stroke-width="0.3"/>
+    <line x1="11" y1="2" x2="11" y2="10" stroke="#1e40af" stroke-width="0.3"/>
+    <line x1="14" y1="2" x2="14" y2="10" stroke="#1e40af" stroke-width="0.3"/>
+    <line x1="17" y1="2" x2="17" y2="10" stroke="#1e40af" stroke-width="0.3"/>
+    <!-- solar panel left 2 -->
+    <rect x="2" y="40" width="18" height="8" rx="1" fill="#2563eb" stroke="#1e40af" stroke-width="0.5"/>
+    <line x1="5" y1="40" x2="5" y2="48" stroke="#1e40af" stroke-width="0.3"/>
+    <line x1="8" y1="40" x2="8" y2="48" stroke="#1e40af" stroke-width="0.3"/>
+    <line x1="11" y1="40" x2="11" y2="48" stroke="#1e40af" stroke-width="0.3"/>
+    <line x1="14" y1="40" x2="14" y2="48" stroke="#1e40af" stroke-width="0.3"/>
+    <line x1="17" y1="40" x2="17" y2="48" stroke="#1e40af" stroke-width="0.3"/>
+    <!-- strut left -->
+    <line x1="11" y1="10" x2="20" y2="23" stroke="#999" stroke-width="0.8"/>
+    <line x1="11" y1="40" x2="20" y2="27" stroke="#999" stroke-width="0.8"/>
+    <!-- solar panel right 1 -->
+    <rect x="120" y="2" width="18" height="8" rx="1" fill="#2563eb" stroke="#1e40af" stroke-width="0.5"/>
+    <line x1="123" y1="2" x2="123" y2="10" stroke="#1e40af" stroke-width="0.3"/>
+    <line x1="126" y1="2" x2="126" y2="10" stroke="#1e40af" stroke-width="0.3"/>
+    <line x1="129" y1="2" x2="129" y2="10" stroke="#1e40af" stroke-width="0.3"/>
+    <line x1="132" y1="2" x2="132" y2="10" stroke="#1e40af" stroke-width="0.3"/>
+    <line x1="135" y1="2" x2="135" y2="10" stroke="#1e40af" stroke-width="0.3"/>
+    <!-- solar panel right 2 -->
+    <rect x="120" y="40" width="18" height="8" rx="1" fill="#2563eb" stroke="#1e40af" stroke-width="0.5"/>
+    <line x1="123" y1="40" x2="123" y2="48" stroke="#1e40af" stroke-width="0.3"/>
+    <line x1="126" y1="40" x2="126" y2="48" stroke="#1e40af" stroke-width="0.3"/>
+    <line x1="129" y1="40" x2="129" y2="48" stroke="#1e40af" stroke-width="0.3"/>
+    <line x1="132" y1="40" x2="132" y2="48" stroke="#1e40af" stroke-width="0.3"/>
+    <line x1="135" y1="40" x2="135" y2="48" stroke="#1e40af" stroke-width="0.3"/>
+    <!-- strut right -->
+    <line x1="129" y1="10" x2="120" y2="23" stroke="#999" stroke-width="0.8"/>
+    <line x1="129" y1="40" x2="120" y2="27" stroke="#999" stroke-width="0.8"/>
+    <!-- radiator panels -->
+    <rect x="38" y="5" width="10" height="4" rx="0.5" fill="#e8c46a" stroke="#c9a84c" stroke-width="0.3"/>
+    <rect x="92" y="41" width="10" height="4" rx="0.5" fill="#e8c46a" stroke="#c9a84c" stroke-width="0.3"/>
+    <!-- canadarm -->
+    <line x1="88" y1="35" x2="100" y2="44" stroke="#ddd" stroke-width="1"/>
+    <line x1="100" y1="44" x2="112" y2="38" stroke="#ddd" stroke-width="1"/>
+    <circle cx="112" cy="38" r="1.5" fill="#fff" stroke="#aaa" stroke-width="0.3"/>
+  </svg>`;
+  document.body.appendChild(iss);
+
+  const issY=Math.random()*(window.innerHeight*0.4)+30;
+  let issX=-160;
+  const issSpeed=0.6+Math.random()*0.4;
+  let goingRight=true;
+
+  // Create 3 satellites that orbit the ISS
+  const sats=[];
+  for(let i=0;i<3;i++){
+    const sat=document.createElement("div");
+    sat.className="sat";
+    sat.innerHTML=`<div class="sat-body"></div><div class="sat-panel-l"></div><div class="sat-panel-r"></div><div class="sat-thrust"></div>`;
+    document.body.appendChild(sat);
+    sats.push({
+      el:sat,
+      orbitR:30+i*18,
+      angle:i*(Math.PI*2/3),
+      speed:0.02+Math.random()*0.015,
+      tiltX:0.6+Math.random()*0.4,
+      tiltY:0.3+Math.random()*0.3
+    });
+  }
+
+  function animateISS(){
+    if(goingRight){
+      issX+=issSpeed;
+      if(issX>window.innerWidth+20){goingRight=false;}
+    }else{
+      issX-=issSpeed;
+      if(issX<-160){goingRight=true;}
+    }
+
+    iss.style.left=issX+"px";
+    iss.style.top=issY+"px";
+    iss.style.transform=goingRight?'scaleX(1)':'scaleX(-1)';
+
+    // ISS center in screen coords
+    const issCX=issX+70;
+    const issCY=issY+25;
+
+    // Update satellites orbiting ISS
+    sats.forEach(s=>{
+      s.angle+=s.speed;
+      const sx=issCX+Math.cos(s.angle)*s.orbitR*s.tiltX;
+      const sy=issCY+Math.sin(s.angle)*s.orbitR*s.tiltY;
+      s.el.style.left=sx+"px";
+      s.el.style.top=sy+"px";
+      // rotate satellite to face direction of travel
+      const deg=Math.atan2(
+        Math.cos(s.angle)*s.orbitR*s.tiltY,
+        -Math.sin(s.angle)*s.orbitR*s.tiltX
+      )*180/Math.PI;
+      s.el.style.transform=`rotate(${deg+90}deg)`;
+    });
+
+    requestAnimationFrame(animateISS);
+  }
+  animateISS();
+}
+createISS();
+
+// ═══════════════════════════════════════════
+// BLACK HOLE — eats everything in its path,
+// Big Bang explosion, then everything resets
+// ═══════════════════════════════════════════
+(function(){
+  const clockEl=document.querySelector('.clock');
+  const sunEl=document.querySelector('.sun');
+  const orbits=document.querySelectorAll('.orbit');
+
+  // Create black hole element
+  const bh=document.createElement("div");
+  bh.className="blackhole";
+  bh.style.width="90px";
+  bh.style.height="90px";
+  bh.innerHTML=`<div class="bh-glow"></div><div class="bh-disk"></div><div class="bh-disk2"></div><div class="bh-core"></div>`;
+  document.body.appendChild(bh);
+
+  function getClockCenter(){
+    const r=clockEl.getBoundingClientRect();
+    return {x:r.left+r.width/2, y:r.top+r.height/2};
+  }
+
+  function randomEdgePos(){
+    const side=Math.floor(Math.random()*4);
+    const W=window.innerWidth, H=window.innerHeight;
+    switch(side){
+      case 0: return {x:80+Math.random()*(W-160), y:40};
+      case 1: return {x:W-50, y:80+Math.random()*(H-160)};
+      case 2: return {x:80+Math.random()*(W-160), y:H-50};
+      default: return {x:50, y:80+Math.random()*(H-160)};
+    }
+  }
+
+  let startX, startY, targetX, targetY;
+  let devourPhase=0; // 0=approaching, 1=sucking clock, 2=bigbang, 3=restoring
+  let devourStart=0;
+  const CYCLE_DURATION=60000; // 60s approach
+  let cycleStart=Date.now();
+  const eatenSet=new Set();
+
+  function getBHPos(){
+    return {x:parseFloat(bh.style.left)||0, y:parseFloat(bh.style.top)||0};
+  }
+
+  // ── Suck a DOM element toward the black hole and hide it ──
+  function eatElement(el,bhPos){
+    if(eatenSet.has(el)) return;
+    eatenSet.add(el);
+    el.classList.add('being-eaten');
+    el.style.left=bhPos.x+'px';
+    el.style.top=bhPos.y+'px';
+    el.style.transform='translate(-50%,-50%) scale(0) rotate(720deg)';
+    el.style.opacity='0';
+    spawnSwirlParticles(bhPos.x, bhPos.y);
+  }
+
+  // ── Swirl particles when eating something ──
+  function spawnSwirlParticles(cx,cy){
+    for(let i=0;i<8;i++){
+      const p=document.createElement('div');
+      p.className='debris';
+      const colors=['#ff6','#f80','#f4f','#8af','#fff'];
+      const size=2+Math.random()*4;
+      p.style.width=size+'px';
+      p.style.height=size+'px';
+      p.style.background=colors[Math.floor(Math.random()*colors.length)];
+      p.style.boxShadow='0 0 '+(size*2)+'px '+p.style.background;
+      p.style.left=cx+'px';
+      p.style.top=cy+'px';
+      document.body.appendChild(p);
+      const angle=Math.random()*Math.PI*2;
+      const dist=20+Math.random()*30;
+      const dur=300+Math.random()*300;
+      const startT=performance.now();
+      (function animP(now){
+        const t=Math.min((now-startT)/dur,1);
+        const r=dist*t;
+        const spin=angle+t*Math.PI*2;
+        p.style.left=(cx+Math.cos(spin)*r*(1-t))+'px';
+        p.style.top=(cy+Math.sin(spin)*r*(1-t))+'px';
+        p.style.opacity=String(1-t);
+        if(t<1) requestAnimationFrame(animP);
+        else p.remove();
+      })(performance.now());
+    }
+  }
+
+  // ── Check proximity and eat nearby objects during approach ──
+  function eatNearbyObjects(){
+    const bhPos=getBHPos();
+    const eatRadius=55;
+
+    document.querySelectorAll('.astronaut').forEach(a=>{
+      const ax=parseFloat(a.style.left)||0, ay=parseFloat(a.style.top)||0;
+      if(Math.hypot(ax-bhPos.x, ay-bhPos.y)<eatRadius) eatElement(a,bhPos);
+    });
+
+    document.querySelectorAll('.iss-wrapper').forEach(iss=>{
+      const ix=parseFloat(iss.style.left)||0, iy=parseFloat(iss.style.top)||0;
+      if(Math.hypot(ix+70-bhPos.x, iy+25-bhPos.y)<eatRadius+40) eatElement(iss,bhPos);
+    });
+
+    document.querySelectorAll('.sat').forEach(s=>{
+      const sx=parseFloat(s.style.left)||0, sy=parseFloat(s.style.top)||0;
+      if(Math.hypot(sx-bhPos.x, sy-bhPos.y)<eatRadius) eatElement(s,bhPos);
+    });
+
+    document.querySelectorAll('.rocket').forEach(r=>{
+      const rx=parseFloat(r.style.left)||0, ry=parseFloat(r.style.top)||0;
+      if(Math.hypot(rx-bhPos.x, ry-bhPos.y)<eatRadius) eatElement(r,bhPos);
+    });
+
+    document.querySelectorAll('.meteor').forEach(m=>{
+      const mx=parseFloat(m.style.left)||0, my=parseFloat(m.style.top)||0;
+      if(Math.hypot(mx-bhPos.x, my-bhPos.y)<eatRadius) eatElement(m,bhPos);
+    });
+  }
+
+  // ── BIG BANG EXPLOSION ──
+  function triggerBigBang(){
+    const bhPos=getBHPos();
+
+    // 1) Screen flash
+    const flash=document.createElement('div');
+    flash.className='bigbang-flash';
+    document.body.appendChild(flash);
+    const flashStart=performance.now();
+    (function animFlash(now){
+      const t=(now-flashStart)/1200;
+      if(t<0.15) flash.style.opacity=String(t/0.15);
+      else if(t<0.4) flash.style.opacity='1';
+      else flash.style.opacity=String(Math.max(0,1-(t-0.4)/0.6));
+      if(t<1) requestAnimationFrame(animFlash);
+      else flash.remove();
+    })(performance.now());
+
+    // 2) Shockwave rings (3 waves)
+    for(let w=0;w<3;w++){
+      setTimeout(()=>{
+        const ring=document.createElement('div');
+        ring.className='shockwave';
+        ring.style.left=bhPos.x+'px';
+        ring.style.top=bhPos.y+'px';
+        ring.style.width='10px';
+        ring.style.height='10px';
+        document.body.appendChild(ring);
+        const ringStart=performance.now();
+        const maxSize=Math.max(window.innerWidth,window.innerHeight)*1.5;
+        (function animRing(now){
+          const t=Math.min((now-ringStart)/1200,1);
+          const size=10+t*maxSize;
+          ring.style.width=size+'px';
+          ring.style.height=size+'px';
+          ring.style.opacity=String(1-t);
+          ring.style.borderWidth=Math.max(1,4*(1-t))+'px';
+          if(t<1) requestAnimationFrame(animRing);
+          else ring.remove();
+        })(performance.now());
+      }, w*250);
+    }
+
+    // 3) Debris / star particles flying out
+    for(let i=0;i<40;i++){
+      const d=document.createElement('div');
+      d.className='debris';
+      const colors=['#fff','#ff6','#f80','#f4f','#4af','#fa0','#f33','#3ff'];
+      const size=2+Math.random()*6;
+      d.style.width=size+'px';
+      d.style.height=size+'px';
+      const col=colors[Math.floor(Math.random()*colors.length)];
+      d.style.background=col;
+      d.style.boxShadow='0 0 '+(size*3)+'px '+col;
+      d.style.left=bhPos.x+'px';
+      d.style.top=bhPos.y+'px';
+      document.body.appendChild(d);
+      const angle=Math.random()*Math.PI*2;
+      const speed=150+Math.random()*400;
+      const dStart=performance.now();
+      const dur=800+Math.random()*1200;
+      (function animD(now){
+        const t=Math.min((now-dStart)/dur,1);
+        const ease=1-Math.pow(1-t,3);
+        const dist=speed*ease;
+        d.style.left=(bhPos.x+Math.cos(angle)*dist)+'px';
+        d.style.top=(bhPos.y+Math.sin(angle)*dist)+'px';
+        d.style.opacity=String(t<0.7?1:(1-(t-0.7)/0.3));
+        const s=size*(1-t*0.5);
+        d.style.width=s+'px';
+        d.style.height=s+'px';
+        if(t<1) requestAnimationFrame(animD);
+        else d.remove();
+      })(performance.now());
+    }
+
+    // 4) Screen shake
+    const shakeStart=performance.now();
+    (function shake(now){
+      const t=(now-shakeStart)/800;
+      if(t<1){
+        const intensity=8*(1-t);
+        document.body.style.transform='translate('+(Math.random()-0.5)*intensity+'px,'+(Math.random()-0.5)*intensity+'px)';
+        requestAnimationFrame(shake);
+      } else {
+        document.body.style.transform='';
+      }
+    })(performance.now());
+  }
+
+  // ── Restore eaten objects ──
+  function restoreEatenObjects(){
+    eatenSet.forEach(el=>{
+      el.classList.remove('being-eaten');
+      el.style.opacity='1';
+      el.style.transform='';
+    });
+    eatenSet.clear();
+  }
+
+  function resetCycle(){
+    const s=randomEdgePos();
+    startX=s.x; startY=s.y;
+    const cc=getClockCenter();
+    targetX=cc.x; targetY=cc.y;
+    devourPhase=0;
+    cycleStart=Date.now();
+    bh.style.left=startX+"px";
+    bh.style.top=startY+"px";
+    bh.style.transform='translate(-50%,-50%) scale(0.7)';
+    bh.style.opacity='0.85';
+    // Restore clock visuals
+    sunEl.style.transform='translate(-50%,-50%) scale(1)';
+    sunEl.style.opacity='1';
+    orbits.forEach(o=>{o.style.opacity='1'; o.style.transform='translate(-50%,-50%) scale(1)';});
+    [hourPlanet,minutePlanet,secondPlanet].forEach(p=>{
+      p.style.opacity='1';
+      p.style.transform='translate(-50%,-50%) scale(1)';
+    });
+    restoreEatenObjects();
+    falling=false;
+  }
+
+  resetCycle();
+
+  function tick(){
+    if(devourPhase===0){
+      // ── APPROACH ── eat anything in the way
+      const elapsed=Date.now()-cycleStart;
+      const progress=Math.min(elapsed/CYCLE_DURATION, 1);
+      const eased=progress*progress;
+
+      const posX=startX+(targetX-startX)*eased;
+      const posY=startY+(targetY-startY)*eased;
+      bh.style.left=posX+"px";
+      bh.style.top=posY+"px";
+
+      const scale=0.7+eased*0.5;
+      bh.style.transform='translate(-50%,-50%) scale('+scale+')';
+      bh.style.opacity=String(0.85+eased*0.15);
+
+      // Eat objects it passes near
+      eatNearbyObjects();
+
+      if(progress>=1){
+        devourPhase=1;
+        devourStart=Date.now();
+        falling=true;
+      }
+    }
+    else if(devourPhase===1){
+      // ── DEVOURING CLOCK ── suck everything in over 2s
+      const t=Math.min((Date.now()-devourStart)/2000, 1);
+      const e=t*t;
+      falling=true;
+
+      eatNearbyObjects();
+
+      sunEl.style.transform='translate(-50%,-50%) scale('+(1-e)+')';
+      sunEl.style.opacity=String(1-e);
+      orbits.forEach(o=>{
+        o.style.opacity=String(1-e);
+        o.style.transform='translate(-50%,-50%) scale('+(1-e)+')';
+      });
+      [hourPlanet,minutePlanet,secondPlanet].forEach(p=>{
+        const px=parseFloat(p.style.left)||center;
+        const py=parseFloat(p.style.top)||center;
+        p.style.left=center+(px-center)*(1-e*0.15)+"px";
+        p.style.top=center+(py-center)*(1-e*0.15)+"px";
+        p.style.opacity=String(1-e);
+        p.style.transform='translate(-50%,-50%) scale('+(1-e)+')';
+      });
+
+      bh.style.transform='translate(-50%,-50%) scale('+(1.2+e*0.8)+')';
+
+      if(t>=1){
+        devourPhase=2;
+        devourStart=Date.now();
+        triggerBigBang();
+      }
+    }
+    else if(devourPhase===2){
+      // ── BIG BANG ── black hole collapses while explosion plays (2.5s)
+      const t=(Date.now()-devourStart)/2500;
+
+      if(t<0.3){
+        const burst=1.8+Math.sin(t/0.3*Math.PI)*0.5;
+        bh.style.transform='translate(-50%,-50%) scale('+burst+')';
+      } else {
+        const collapse=(t-0.3)/0.7;
+        const s=2.0*(1-collapse*collapse);
+        bh.style.transform='translate(-50%,-50%) scale('+Math.max(s,0.01)+')';
+        bh.style.opacity=String(Math.max(0,1-collapse));
+      }
+
+      if(t>=1){ devourPhase=3; devourStart=Date.now(); }
+    }
+    else if(devourPhase===3){
+      // ── RESTORE ── everything fades back peacefully over 2s
+      const t=Math.min((Date.now()-devourStart)/2000, 1);
+      const e=t<0.5?2*t*t:1-Math.pow(-2*t+2,2)/2; // ease in-out
+      falling=false;
+
+      sunEl.style.transform='translate(-50%,-50%) scale('+e+')';
+      sunEl.style.opacity=String(e);
+      orbits.forEach(o=>{
+        o.style.opacity=String(e);
+        o.style.transform='translate(-50%,-50%) scale('+e+')';
+      });
+      [hourPlanet,minutePlanet,secondPlanet].forEach(p=>{
+        p.style.opacity=String(e);
+        p.style.transform='translate(-50%,-50%) scale('+e+')';
+      });
+
+      bh.style.opacity='0';
+      bh.style.transform='translate(-50%,-50%) scale(0.01)';
+
+      if(t>=1) resetCycle();
+    }
+
+    requestAnimationFrame(tick);
+  }
+  tick();
+})();
+</script>
+</body>
+</html>
