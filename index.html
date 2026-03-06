@@ -24,19 +24,27 @@ body{
   background:#020617;
   font-family:sans-serif;
   overflow:hidden;
-  -webkit-overflow-scrolling:touch;
-  touch-action:none;
-  -ms-touch-action:none;
+  touch-action:manipulation;
+  -ms-touch-action:manipulation;
   -webkit-text-size-adjust:100%;
   -moz-text-size-adjust:100%;
   text-size-adjust:100%;
 }
+*{touch-action:manipulation;}
 html{
-  touch-action:none;
   overflow:hidden;
   position:fixed;
   width:100%;
   height:100%;
+  touch-action:manipulation;
+}
+#scene{
+  width:100%;height:100%;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  position:relative;
 }
 
 /* Twinkling stars */
@@ -570,6 +578,7 @@ footer{
 </style>
 <body>
 
+<div id="scene">
 <!-- Stars generated in main script below -->
 
 <!-- Clock -->
@@ -606,6 +615,7 @@ footer{
 
 <!-- Footer -->
 <footer>© Orbit Clock | Build By: Arunim's IT Caffe</footer>
+</div><!-- /scene -->
 
 <script>
 // ── Responsive sizing ──
@@ -627,6 +637,9 @@ document.addEventListener('touchend', function(e){
   lastTouchEnd=now;
 }, {passive:false});
 
+// Scene wrapper for screen shake (never transform body on mobile)
+const sceneEl=document.getElementById('scene');
+
 // Orbit Clock
 const hourPlanet = document.getElementById("hour");
 const minutePlanet = document.getElementById("minute");
@@ -646,6 +659,7 @@ const SPARK_COUNT = isMobile ? 12 : (isTablet ? 20 : 30);
 const DEBRIS_COUNT = isMobile ? 15 : (isTablet ? 25 : 40);
 const SWIRL_COUNT = isMobile ? 4 : 8;
 const ASTRONAUT_COUNT = isMobile ? 1 : 2;
+const ASTEROID_INTERVAL = isMobile ? 800 : (isTablet ? 600 : 400);
 
 // Generate stars (responsive count)
 for(let i=0;i<STAR_COUNT;i++){
@@ -743,7 +757,7 @@ setInterval(()=>{
 // with dramatic collision detection
 // ═══════════════════════════════════════════
 // Track active rockets for collision detection
-const activeRockets={h:null, v:null};
+const activeRockets={h:null, v:null, h2:null, v2:null};
 
 function buildRocketDOM(){
   const rocket=document.createElement("div");
@@ -846,41 +860,40 @@ function triggerRocketCollision(cx,cy){
     else flash.remove();
   })(performance.now());
 
-  // 5) Small screen shake (skip on mobile to prevent zoom)
-  if(!isMobile){
-    const shakeStart=performance.now();
-    (function shake(now){
-      const t=(now-shakeStart)/400;
-      if(t<1){
-        const i=5*(1-t);
-        document.body.style.transform='translate('+(Math.random()-0.5)*i+'px,'+(Math.random()-0.5)*i+'px)';
-        requestAnimationFrame(shake);
-      } else {
-        document.body.style.transform='';
-      }
-    })(performance.now());
-  }
+  // 5) Screen shake (on scene wrapper, safe for mobile)
+  const shakeStart=performance.now();
+  (function shake(now){
+    const t=(now-shakeStart)/400;
+    if(t<1){
+      const i=5*(1-t);
+      sceneEl.style.transform='translate('+(Math.random()-0.5)*i+'px,'+(Math.random()-0.5)*i+'px)';
+      requestAnimationFrame(shake);
+    } else {
+      sceneEl.style.transform='';
+    }
+  })(performance.now());
 }
 
-// Check collision between horizontal and vertical rockets
+// Check collision between any horizontal and vertical rockets
 function checkRocketCollision(){
-  if(!activeRockets.h||!activeRockets.v) return false;
-  if(!activeRockets.h.alive||!activeRockets.v.alive) return false;
-  const hx=activeRockets.h.x, hy=activeRockets.h.y;
-  const vx=activeRockets.v.x, vy=activeRockets.v.y;
-  const dist=Math.hypot(hx-vx, hy-vy);
-  if(dist<30){
-    const cx=(hx+vx)/2, cy=(hy+vy)/2;
-    // Kill both rockets
-    activeRockets.h.alive=false;
-    activeRockets.v.alive=false;
-    activeRockets.h.el.remove();
-    activeRockets.v.el.remove();
-    triggerRocketCollision(cx,cy);
-    // Respawn both after a delay
-    setTimeout(createHorizontalRocket,1500);
-    setTimeout(createVerticalRocket,2000);
-    return true;
+  const hKeys=['h','h2'], vKeys=['v','v2'];
+  for(const hk of hKeys){
+    for(const vk of vKeys){
+      const hr=activeRockets[hk], vr=activeRockets[vk];
+      if(!hr||!vr||!hr.alive||!vr.alive) continue;
+      const dist=Math.hypot(hr.x-vr.x, hr.y-vr.y);
+      if(dist<35){
+        const cx=(hr.x+vr.x)/2, cy=(hr.y+vr.y)/2;
+        hr.alive=false; vr.alive=false;
+        hr.el.remove(); vr.el.remove();
+        triggerRocketCollision(cx,cy);
+        if(hk==='h') setTimeout(createHorizontalRocket,800);
+        else setTimeout(createHorizontalRocket2,800);
+        if(vk==='v') setTimeout(createVerticalRocket,1000);
+        else setTimeout(createVerticalRocket2,1000);
+        return true;
+      }
+    }
   }
   return false;
 }
@@ -894,14 +907,15 @@ function createHorizontalRocket(){
 
   const startY=Math.random()*(window.innerHeight-100)+50;
   let x=-50;
-  const speed=2+Math.random()*2;
-  const crashX=Math.random()*window.innerWidth;
+  const speed=3+Math.random()*2;
+  // Crash further across screen for more asteroid encounters
+  const crashX=window.innerWidth*0.6+Math.random()*window.innerWidth*0.5;
   const info={el:rocket, x:x, y:startY, alive:true};
   activeRockets.h=info;
 
   function animate(){
     if(!info.alive) return;
-    if(x<crashX){
+    if(x<crashX && x<window.innerWidth+60){
       x+=speed;
       info.x=x; info.y=startY;
       rocket.style.left=x+"px";
@@ -911,12 +925,12 @@ function createHorizontalRocket(){
       info.alive=false;
       const explosion=document.createElement("div");
       explosion.className="explosion";
-      explosion.style.left=x+"px";
+      explosion.style.left=Math.min(x,window.innerWidth-10)+"px";
       explosion.style.top=startY+"px";
       document.body.appendChild(explosion);
       setTimeout(()=>explosion.remove(),500);
       rocket.remove();
-      setTimeout(createHorizontalRocket,1000);
+      setTimeout(createHorizontalRocket,600);
     }
   }
   animate();
@@ -930,8 +944,11 @@ function createVerticalRocket(){
   const startX=Math.random()*(window.innerWidth-100)+50;
   const goingDown=Math.random()>0.5;
   let y=goingDown?-50:window.innerHeight+50;
-  const speed=2.5+Math.random()*2;
-  const crashY=Math.random()*(window.innerHeight*0.6)+(window.innerHeight*0.2);
+  const speed=3+Math.random()*2;
+  // Crash further for more asteroid encounters
+  const crashY=goingDown
+    ?(window.innerHeight*0.7+Math.random()*window.innerHeight*0.4)
+    :(Math.random()*window.innerHeight*0.3);
   // Point nose in travel direction
   rocket.style.transform=goingDown?'rotate(180deg)':'rotate(0deg)';
   const info={el:rocket, x:startX, y:y, alive:true};
@@ -940,7 +957,8 @@ function createVerticalRocket(){
   function animate(){
     if(!info.alive) return;
     const reachedCrash=goingDown?(y>crashY):(y<crashY);
-    if(!reachedCrash){
+    const offScreen=goingDown?(y>window.innerHeight+60):(y<-60);
+    if(!reachedCrash && !offScreen){
       y+=goingDown?speed:-speed;
       info.x=startX; info.y=y;
       rocket.style.left=startX+"px";
@@ -951,11 +969,88 @@ function createVerticalRocket(){
       const explosion=document.createElement("div");
       explosion.className="explosion";
       explosion.style.left=startX+"px";
-      explosion.style.top=y+"px";
+      explosion.style.top=Math.max(0,Math.min(y,window.innerHeight-10))+"px";
       document.body.appendChild(explosion);
       setTimeout(()=>explosion.remove(),500);
       rocket.remove();
-      setTimeout(createVerticalRocket,1200);
+      setTimeout(createVerticalRocket,600);
+    }
+  }
+  animate();
+}
+
+// ── Second Horizontal Rocket (right → left) ──
+function createHorizontalRocket2(){
+  const rocket=buildRocketDOM();
+  rocket.style.transform='rotate(-90deg)';
+  document.body.appendChild(rocket);
+
+  const startY=Math.random()*(window.innerHeight-100)+50;
+  let x=window.innerWidth+50;
+  const speed=3+Math.random()*2;
+  const crashX=-(Math.random()*window.innerWidth*0.3);
+  const info={el:rocket, x:x, y:startY, alive:true};
+  activeRockets.h2=info;
+
+  function animate(){
+    if(!info.alive) return;
+    if(x>crashX && x>-60){
+      x-=speed;
+      info.x=x; info.y=startY;
+      rocket.style.left=x+"px";
+      rocket.style.top=startY+"px";
+      if(!checkRocketCollision()) requestAnimationFrame(animate);
+    }else{
+      info.alive=false;
+      const explosion=document.createElement("div");
+      explosion.className="explosion";
+      explosion.style.left=Math.max(0,x)+"px";
+      explosion.style.top=startY+"px";
+      document.body.appendChild(explosion);
+      setTimeout(()=>explosion.remove(),500);
+      rocket.remove();
+      setTimeout(createHorizontalRocket2,600);
+    }
+  }
+  animate();
+}
+
+// ── Second Vertical Rocket (opposite direction) ──
+function createVerticalRocket2(){
+  const rocket=buildRocketDOM();
+  document.body.appendChild(rocket);
+
+  const startX=Math.random()*(window.innerWidth-100)+50;
+  const goingDown=Math.random()>0.5;
+  let y=goingDown?-50:window.innerHeight+50;
+  const speed=3+Math.random()*2;
+  const crashY=goingDown
+    ?(window.innerHeight*0.7+Math.random()*window.innerHeight*0.4)
+    :(Math.random()*window.innerHeight*0.3);
+  rocket.style.transform=goingDown?'rotate(180deg)':'rotate(0deg)';
+  const info={el:rocket, x:startX, y:y, alive:true};
+  activeRockets.v2=info;
+
+  function animate(){
+    if(!info.alive) return;
+    const reachedCrash=goingDown?(y>crashY):(y<crashY);
+    const offScreen=goingDown?(y>window.innerHeight+60):(y<-60);
+    if(!reachedCrash && !offScreen){
+      y+=goingDown?speed:-speed;
+      info.x=startX; info.y=y;
+      rocket.style.left=startX+"px";
+      rocket.style.top=y+"px";
+      if(!checkRocketCollision()) requestAnimationFrame(animate);
+    }else{
+      info.alive=false;
+      const explosion=document.createElement("div");
+      explosion.className="explosion";
+      explosion.style.left=startX+"px";
+      explosion.style.top=Math.max(0,Math.min(y,window.innerHeight-10))+"px";
+      document.body.appendChild(explosion);
+      setTimeout(()=>explosion.remove(),500);
+      rocket.remove();
+      setTimeout(createVerticalRocket2,600);
     }
   }
   animate();
@@ -963,6 +1058,8 @@ function createVerticalRocket(){
 
 createHorizontalRocket();
 createVerticalRocket();
+setTimeout(createHorizontalRocket2,500);
+setTimeout(createVerticalRocket2,800);
 
 // ═══════════════════════════════════════════
 // FLOATING ASTRONAUT — drifts up & down
@@ -1367,20 +1464,18 @@ createISS();
       })(performance.now());
     }
 
-    // 4) Screen shake (skip on mobile to prevent zoom)
-    if(!isMobile){
-      const shakeStart=performance.now();
-      (function shake(now){
-        const t=(now-shakeStart)/800;
-        if(t<1){
-          const intensity=8*(1-t);
-          document.body.style.transform='translate('+(Math.random()-0.5)*intensity+'px,'+(Math.random()-0.5)*intensity+'px)';
-          requestAnimationFrame(shake);
-        } else {
-          document.body.style.transform='';
-        }
-      })(performance.now());
-    }
+    // 4) Screen shake (on scene wrapper, safe for mobile)
+    const shakeStart=performance.now();
+    (function shake(now){
+      const t=(now-shakeStart)/800;
+      if(t<1){
+        const intensity=8*(1-t);
+        sceneEl.style.transform='translate('+(Math.random()-0.5)*intensity+'px,'+(Math.random()-0.5)*intensity+'px)';
+        requestAnimationFrame(shake);
+      } else {
+        sceneEl.style.transform='';
+      }
+    })(performance.now());
   }
 
   // ── Restore eaten objects ──
@@ -1523,7 +1618,6 @@ createISS();
 // Rockets collide with them for explosions
 // ═══════════════════════════════════════════
 const activeAsteroids=[];
-const ASTEROID_INTERVAL = isMobile ? 2500 : (isTablet ? 1800 : 1200);
 const ASTEROID_COLORS=['#8B7355','#A0926B','#6B5B4A','#9C8B6E','#7A6B55','#B5A48A'];
 
 function buildAsteroidSVG(size){
@@ -1611,27 +1705,47 @@ function createAsteroid(){
   el.innerHTML=buildAsteroidSVG(size);
   document.body.appendChild(el);
 
-  // Spawn from top or sides
+  // Spawn from top or sides, aimed towards center for more collisions
   const spawnSide=Math.random();
   let x,y,vx,vy;
-  if(spawnSide<0.5){
+  const centerX=window.innerWidth/2+(Math.random()-0.5)*200;
+  const centerY=window.innerHeight/2+(Math.random()-0.5)*200;
+  if(spawnSide<0.4){
     // From top
     x=Math.random()*window.innerWidth;
     y=-size;
-    vx=(Math.random()-0.5)*1.5;
-    vy=1.5+Math.random()*2;
-  } else if(spawnSide<0.75){
+    const dx=centerX-x, dy=centerY-y;
+    const len=Math.hypot(dx,dy);
+    const spd=2+Math.random()*2;
+    vx=dx/len*spd+(Math.random()-0.5)*0.5;
+    vy=dy/len*spd;
+  } else if(spawnSide<0.55){
+    // From bottom
+    x=Math.random()*window.innerWidth;
+    y=window.innerHeight+size;
+    const dx=centerX-x, dy=centerY-y;
+    const len=Math.hypot(dx,dy);
+    const spd=2+Math.random()*2;
+    vx=dx/len*spd+(Math.random()-0.5)*0.5;
+    vy=dy/len*spd;
+  } else if(spawnSide<0.775){
     // From left
     x=-size;
-    y=Math.random()*window.innerHeight*0.5;
-    vx=1.5+Math.random()*1.5;
-    vy=0.8+Math.random()*1.5;
+    y=Math.random()*window.innerHeight;
+    const dx=centerX-x, dy=centerY-y;
+    const len=Math.hypot(dx,dy);
+    const spd=2+Math.random()*2;
+    vx=dx/len*spd;
+    vy=dy/len*spd+(Math.random()-0.5)*0.5;
   } else {
     // From right
     x=window.innerWidth+size;
-    y=Math.random()*window.innerHeight*0.5;
-    vx=-(1.5+Math.random()*1.5);
-    vy=0.8+Math.random()*1.5;
+    y=Math.random()*window.innerHeight;
+    const dx=centerX-x, dy=centerY-y;
+    const len=Math.hypot(dx,dy);
+    const spd=2+Math.random()*2;
+    vx=dx/len*spd;
+    vy=dy/len*spd+(Math.random()-0.5)*0.5;
   }
 
   let rot=Math.random()*360;
@@ -1657,38 +1771,29 @@ function createAsteroid(){
       return;
     }
 
-    // Check collision with rockets
-    const hitDist=size*0.6+15;
-    // Horizontal rocket
-    if(activeRockets.h&&activeRockets.h.alive){
-      const rx=activeRockets.h.x, ry=activeRockets.h.y;
-      if(Math.hypot(x-rx, y-ry)<hitDist){
-        // Destroy asteroid
-        info.alive=false;
-        el.remove();
-        const idx=activeAsteroids.indexOf(info);
-        if(idx>-1) activeAsteroids.splice(idx,1);
-        triggerAsteroidExplosion((x+rx)/2,(y+ry)/2,size);
-        // Destroy rocket too
-        activeRockets.h.alive=false;
-        activeRockets.h.el.remove();
-        setTimeout(createHorizontalRocket,1200);
-        return;
-      }
-    }
-    // Vertical rocket
-    if(activeRockets.v&&activeRockets.v.alive){
-      const rx=activeRockets.v.x, ry=activeRockets.v.y;
-      if(Math.hypot(x-rx, y-ry)<hitDist){
-        info.alive=false;
-        el.remove();
-        const idx=activeAsteroids.indexOf(info);
-        if(idx>-1) activeAsteroids.splice(idx,1);
-        triggerAsteroidExplosion((x+rx)/2,(y+ry)/2,size);
-        activeRockets.v.alive=false;
-        activeRockets.v.el.remove();
-        setTimeout(createVerticalRocket,1200);
-        return;
+    // Check collision with ALL rockets
+    const hitDist=size*0.8+20;
+    const rocketChecks=[
+      {key:'h', respawn:createHorizontalRocket},
+      {key:'h2', respawn:createHorizontalRocket2},
+      {key:'v', respawn:createVerticalRocket},
+      {key:'v2', respawn:createVerticalRocket2}
+    ];
+    for(const rc of rocketChecks){
+      const rk=activeRockets[rc.key];
+      if(rk&&rk.alive){
+        const rx=rk.x, ry=rk.y;
+        if(Math.hypot(x-rx, y-ry)<hitDist){
+          info.alive=false;
+          el.remove();
+          const idx=activeAsteroids.indexOf(info);
+          if(idx>-1) activeAsteroids.splice(idx,1);
+          triggerAsteroidExplosion((x+rx)/2,(y+ry)/2,size);
+          rk.alive=false;
+          rk.el.remove();
+          setTimeout(rc.respawn,500);
+          return;
+        }
       }
     }
 
@@ -1697,15 +1802,15 @@ function createAsteroid(){
   animate();
 }
 
-// Periodic asteroid shower
+// Periodic asteroid shower — fast spawning
 setInterval(createAsteroid, ASTEROID_INTERVAL);
-// Occasional burst shower
+// Frequent burst showers for dramatic effect
 setInterval(()=>{
-  const burstCount=isMobile?3:5;
+  const burstCount=isMobile?4:7;
   for(let i=0;i<burstCount;i++){
-    setTimeout(createAsteroid, i*200);
+    setTimeout(createAsteroid, i*150);
   }
-}, isMobile?15000:10000);
+}, isMobile?8000:5000);
 
 </script>
 </body>
