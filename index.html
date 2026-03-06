@@ -1291,6 +1291,72 @@ function createISS(){
     });
   }
 
+  // ── EVA Astronaut — tethered to ISS, doing repairs ──
+  const eva=document.createElement("div");
+  eva.className="astronaut";
+  eva.style.zIndex='9';
+  // Smaller astronaut with tools, arm reaching out to ISS hull
+  eva.innerHTML=`<svg width="38" height="48" viewBox="0 0 38 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <!-- tether to ISS -->
+    <path d="M19 18 Q24 8 30 2" stroke="#aaa" stroke-width="0.8" fill="none" stroke-dasharray="2 1.5"/>
+    <circle cx="30" cy="2" r="1" fill="#ccc"/>
+    <!-- backpack / SAFER unit -->
+    <rect x="7" y="16" width="6" height="14" rx="1.5" fill="#555"/>
+    <rect x="8" y="18" width="1.5" height="3" rx="0.5" fill="#888"/>
+    <rect x="10.5" y="18" width="1.5" height="3" rx="0.5" fill="#888"/>
+    <!-- body / suit -->
+    <rect x="12" y="16" width="13" height="16" rx="3" fill="#e8e8e8" stroke="#ccc" stroke-width="0.4"/>
+    <!-- chest panel -->
+    <rect x="14" y="19" width="8" height="2.5" rx="0.8" fill="#ddd"/>
+    <rect x="15.5" y="19.5" width="2" height="1.2" rx="0.4" fill="#f44"/>
+    <rect x="18.5" y="19.5" width="1.5" height="1.2" rx="0.4" fill="#4a4"/>
+    <!-- helmet -->
+    <ellipse cx="18.5" cy="12" rx="7.5" ry="8.5" fill="#e8e8e8" stroke="#ccc" stroke-width="0.4"/>
+    <!-- visor -->
+    <ellipse cx="18.5" cy="11.5" rx="5.5" ry="5.5" fill="#1a1a3e"/>
+    <ellipse cx="18.5" cy="11" rx="5" ry="4.8" fill="url(#evaVisor)"/>
+    <!-- visor glare -->
+    <ellipse cx="16" cy="9.5" rx="1.5" ry="1" fill="rgba(255,255,255,0.3)" transform="rotate(-10 16 9.5)"/>
+    <!-- left arm reaching up (working on ISS) -->
+    <rect x="4" y="13" width="9" height="3" rx="1.5" fill="#e8e8e8" stroke="#ccc" stroke-width="0.3" transform="rotate(-40 8 15)"/>
+    <circle cx="3" cy="10" r="1.8" fill="#e0e0e0" stroke="#bbb" stroke-width="0.3"/>
+    <!-- tool in left hand -->
+    <rect x="1" y="7" width="1.2" height="5" rx="0.3" fill="#999" transform="rotate(-20 1.5 9)"/>
+    <rect x="0.2" y="6.5" width="2.8" height="1.5" rx="0.3" fill="#777" transform="rotate(-20 1.5 7)"/>
+    <!-- right arm holding handrail -->
+    <rect x="24" y="18" width="9" height="3" rx="1.5" fill="#e8e8e8" stroke="#ccc" stroke-width="0.3" transform="rotate(15 28 19)"/>
+    <circle cx="33" cy="20" r="1.8" fill="#e0e0e0" stroke="#bbb" stroke-width="0.3"/>
+    <!-- left leg -->
+    <rect x="13" y="31" width="4" height="10" rx="1.5" fill="#e8e8e8" stroke="#ccc" stroke-width="0.3" transform="rotate(12 15 31)"/>
+    <ellipse cx="15.5" cy="42" rx="2.5" ry="1.5" fill="#ddd" stroke="#bbb" stroke-width="0.2"/>
+    <!-- right leg floating back -->
+    <rect x="21" y="31" width="4" height="10" rx="1.5" fill="#e8e8e8" stroke="#ccc" stroke-width="0.3" transform="rotate(-15 23 31)"/>
+    <ellipse cx="22" cy="42" rx="2.5" ry="1.5" fill="#ddd" stroke="#bbb" stroke-width="0.2"/>
+    <!-- sparks from tool -->
+    <circle cx="1.5" cy="6" r="0.6" fill="#ff0" opacity="0.8">
+      <animate attributeName="opacity" values="0;1;0" dur="0.3s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="0.5" cy="5" r="0.4" fill="#fa0" opacity="0.6">
+      <animate attributeName="opacity" values="1;0;1" dur="0.25s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="2.5" cy="5.5" r="0.5" fill="#ff6" opacity="0.7">
+      <animate attributeName="opacity" values="0.5;1;0.2" dur="0.35s" repeatCount="indefinite"/>
+    </circle>
+    <defs>
+      <radialGradient id="evaVisor" cx="40%" cy="35%">
+        <stop offset="0%" stop-color="#6ec6ff" stop-opacity="0.6"/>
+        <stop offset="60%" stop-color="#1a3a6e" stop-opacity="0.85"/>
+        <stop offset="100%" stop-color="#0a0a2e"/>
+      </radialGradient>
+    </defs>
+  </svg>`;
+  document.body.appendChild(eva);
+
+  // EVA astronaut offset from ISS center — hangs near the starboard module
+  const evaOffsetX=45;
+  const evaOffsetY=-22;
+  let evaBob=0;
+
   function animateISS(){
     if(goingRight){
       issX+=issSpeed;
@@ -1307,6 +1373,16 @@ function createISS(){
     // ISS center in screen coords
     const issCX=issX+70;
     const issCY=issY+25;
+
+    // EVA astronaut follows ISS with gentle bob
+    evaBob+=0.03;
+    const evaX=issCX+(goingRight?evaOffsetX:-evaOffsetX);
+    const evaY=issCY+evaOffsetY+Math.sin(evaBob)*4;
+    eva.style.left=evaX+'px';
+    eva.style.top=evaY+'px';
+    // Gently sway + flip with ISS direction
+    const evaRot=Math.sin(evaBob*0.7)*8;
+    eva.style.transform=(goingRight?'':'scaleX(-1) ')+'rotate('+evaRot+'deg)';
 
     // Update satellites orbiting ISS
     sats.forEach(s=>{
