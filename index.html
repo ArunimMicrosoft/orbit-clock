@@ -2,11 +2,21 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Orbit Clock with Realistic Rocket</title>
 <style>
+:root{
+  --clock-size:420px;
+  --center:210;
+  --rHour:160;
+  --rMinute:120;
+  --rSecond:85;
+  --scale:1;
+}
 body{
   margin:0;
   height:100vh;
+  height:100dvh;
   display:flex;
   flex-direction:column;
   justify-content:center;
@@ -14,6 +24,7 @@ body{
   background:#020617;
   font-family:sans-serif;
   overflow:hidden;
+  -webkit-overflow-scrolling:touch;
 }
 
 /* Twinkling stars */
@@ -34,8 +45,8 @@ body{
 
 /* Clock container */
 .clock{
-  width:420px;
-  height:420px;
+  width:var(--clock-size);
+  height:var(--clock-size);
   position:relative;
 }
 
@@ -258,6 +269,7 @@ footer{
   background:rgba(0,0,0,0.2);
   position:absolute;
   bottom:0;
+  z-index:20;
 }
 
 /* ── Floating Astronaut ── */
@@ -450,22 +462,79 @@ footer{
   z-index:51;
 }
 
+/* ═══════════════════════════════════════════
+   MOBILE RESPONSIVE
+   ═══════════════════════════════════════════ */
+@media(max-width:480px){
+  :root{
+    --clock-size:280px;
+    --center:140;
+    --rHour:106;
+    --rMinute:80;
+    --rSecond:56;
+    --scale:0.667;
+  }
+  .hourOrbit{width:213px;height:213px;}
+  .minuteOrbit{width:160px;height:160px;}
+  .secondOrbit{width:113px;height:113px;}
+  .sun{width:24px;height:24px;box-shadow:0 0 20px gold,0 0 50px orange;}
+  .hourPlanet{width:12px;height:12px;}
+  .minutePlanet{width:10px;height:10px;}
+  .secondPlanet{width:20px;height:16px;}
+  .secondPlanet svg{width:20px;height:16px;}
+  .label{font-size:9px;}
+  .digitalTime{font-size:18px;padding:6px 0;bottom:10px;}
+  footer{font-size:11px;padding:6px 0;}
+  .astronaut svg{width:32px;height:42px;}
+  .iss-wrapper svg{width:90px;height:32px;}
+  .blackhole{transform:translate(-50%,-50%) scale(0.7);}
+  .bh-core{width:24px;height:24px;}
+  .bh-disk{width:50px;height:50px;}
+  .bh-disk2{width:40px;height:40px;}
+  .bh-glow{width:60px;height:60px;}
+}
+@media(min-width:481px) and (max-width:768px){
+  :root{
+    --clock-size:340px;
+    --center:170;
+    --rHour:130;
+    --rMinute:97;
+    --rSecond:69;
+    --scale:0.81;
+  }
+  .hourOrbit{width:260px;height:260px;}
+  .minuteOrbit{width:195px;height:195px;}
+  .secondOrbit{width:138px;height:138px;}
+  .sun{width:28px;height:28px;}
+  .hourPlanet{width:14px;height:14px;}
+  .minutePlanet{width:11px;height:11px;}
+  .secondPlanet{width:22px;height:18px;}
+  .secondPlanet svg{width:22px;height:18px;}
+  .label{font-size:10px;}
+  .digitalTime{font-size:20px;padding:8px 0;}
+  footer{font-size:12px;}
+  .astronaut svg{width:40px;height:52px;}
+  .iss-wrapper svg{width:110px;height:40px;}
+}
+
+/* Touch-friendly: prevent text selection, context menus on mobile */
+.clock,.astronaut,.iss-wrapper,.rocket,.blackhole,.sat{
+  -webkit-touch-callout:none;
+  -webkit-user-select:none;
+  user-select:none;
+}
+
+/* GPU acceleration for smoother animations on mobile */
+.planet,.rocket,.astronaut,.iss-wrapper,.blackhole,.sat,.meteor,.star{
+  will-change:transform,left,top;
+  -webkit-transform:translateZ(0);
+  transform:translateZ(0);
+}
+
 </style>
 <body>
 
-<!-- Stars -->
-<script>
-for(let i=0;i<120;i++){
-  const star=document.createElement("div");
-  star.className="star";
-  star.style.left=Math.random()*window.innerWidth+"px";
-  star.style.top=Math.random()*window.innerHeight+"px";
-  star.style.width=1+Math.random()*2+"px";
-  star.style.height=star.style.width;
-  star.style.animationDuration=(1+Math.random()*3)+"s";
-  document.body.appendChild(star);
-}
-</script>
+<!-- Stars generated in main script below -->
 
 <!-- Clock -->
 <div class="clock">
@@ -503,17 +572,42 @@ for(let i=0;i<120;i++){
 <footer>© Orbit Clock | Build By: Arunim's IT Caffe</footer>
 
 <script>
+// ── Responsive sizing ──
+const isMobile = window.innerWidth <= 480;
+const isTablet = window.innerWidth > 480 && window.innerWidth <= 768;
+const scaleFactor = isMobile ? 0.667 : (isTablet ? 0.81 : 1);
+
 // Orbit Clock
 const hourPlanet = document.getElementById("hour");
 const minutePlanet = document.getElementById("minute");
 const secondPlanet = document.getElementById("second");
 const digital = document.getElementById("digitalTime");
 
-const center = 210;
-const rHour = 160;
-const rMinute = 120;
-const rSecond = 85;
+const center = isMobile ? 140 : (isTablet ? 170 : 210);
+const rHour = isMobile ? 106 : (isTablet ? 130 : 160);
+const rMinute = isMobile ? 80 : (isTablet ? 97 : 120);
+const rSecond = isMobile ? 56 : (isTablet ? 69 : 85);
 let falling=false;
+
+// Reduce particle counts on mobile for performance
+const STAR_COUNT = isMobile ? 50 : (isTablet ? 80 : 120);
+const METEOR_INTERVAL = isMobile ? 1500 : (isTablet ? 1000 : 700);
+const SPARK_COUNT = isMobile ? 12 : (isTablet ? 20 : 30);
+const DEBRIS_COUNT = isMobile ? 15 : (isTablet ? 25 : 40);
+const SWIRL_COUNT = isMobile ? 4 : 8;
+const ASTRONAUT_COUNT = isMobile ? 1 : 2;
+
+// Generate stars (responsive count)
+for(let i=0;i<STAR_COUNT;i++){
+  const star=document.createElement("div");
+  star.className="star";
+  star.style.left=Math.random()*window.innerWidth+"px";
+  star.style.top=Math.random()*window.innerHeight+"px";
+  star.style.width=1+Math.random()*2+"px";
+  star.style.height=star.style.width;
+  star.style.animationDuration=(1+Math.random()*3)+"s";
+  document.body.appendChild(star);
+}
 
 function updateClock(){
   const now=new Date();
@@ -569,7 +663,7 @@ function createMeteor(){
   }
   animate();
 }
-setInterval(createMeteor,700);
+setInterval(createMeteor,METEOR_INTERVAL);
 
 // Gravity Fall
 function gravityFall(){
@@ -660,7 +754,7 @@ function triggerRocketCollision(cx,cy){
 
   // 3) Flying sparks / debris in all directions
   const sparkColors=['#fff','#ff6','#f80','#f44','#fa0','#ff0','#f4f','#4ef'];
-  for(let i=0;i<30;i++){
+  for(let i=0;i<SPARK_COUNT;i++){
     const sp=document.createElement('div');
     sp.className='collision-spark';
     const size=2+Math.random()*5;
@@ -891,9 +985,9 @@ function createAstronaut(){
   }
   drift();
 }
-// Spawn 2 astronauts
+// Spawn astronauts (responsive count)
 createAstronaut();
-setTimeout(createAstronaut,4000);
+if(ASTRONAUT_COUNT>1) setTimeout(createAstronaut,4000);
 
 // ═══════════════════════════════════════════
 // ISS SPACE STATION — moves left ↔ right
@@ -966,9 +1060,10 @@ function createISS(){
   const issSpeed=0.6+Math.random()*0.4;
   let goingRight=true;
 
-  // Create 3 satellites that orbit the ISS
+  // Create satellites that orbit the ISS (fewer on mobile)
+  const satCount=isMobile?2:3;
   const sats=[];
-  for(let i=0;i<3;i++){
+  for(let i=0;i<satCount;i++){
     const sat=document.createElement("div");
     sat.className="sat";
     sat.innerHTML=`<div class="sat-body"></div><div class="sat-panel-l"></div><div class="sat-panel-r"></div><div class="sat-thrust"></div>`;
@@ -1079,7 +1174,7 @@ createISS();
 
   // ── Swirl particles when eating something ──
   function spawnSwirlParticles(cx,cy){
-    for(let i=0;i<8;i++){
+    for(let i=0;i<SWIRL_COUNT;i++){
       const p=document.createElement('div');
       p.className='debris';
       const colors=['#ff6','#f80','#f4f','#8af','#fff'];
@@ -1183,7 +1278,7 @@ createISS();
     }
 
     // 3) Debris / star particles flying out
-    for(let i=0;i<40;i++){
+    for(let i=0;i<DEBRIS_COUNT;i++){
       const d=document.createElement('div');
       d.className='debris';
       const colors=['#fff','#ff6','#f80','#f4f','#4af','#fa0','#f33','#3ff'];
