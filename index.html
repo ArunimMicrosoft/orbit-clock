@@ -658,7 +658,7 @@ const METEOR_INTERVAL = isMobile ? 1500 : (isTablet ? 1000 : 700);
 const SPARK_COUNT = isMobile ? 12 : (isTablet ? 20 : 30);
 const DEBRIS_COUNT = isMobile ? 15 : (isTablet ? 25 : 40);
 const SWIRL_COUNT = isMobile ? 4 : 8;
-const ASTRONAUT_COUNT = isMobile ? 1 : 2;
+const ASTRONAUT_COUNT = isMobile ? 3 : 4;
 const ASTEROID_INTERVAL = isMobile ? 800 : (isTablet ? 600 : 400);
 
 // Generate stars (responsive count)
@@ -757,7 +757,7 @@ setInterval(()=>{
 // with dramatic collision detection
 // ═══════════════════════════════════════════
 // Track active rockets for collision detection
-const activeRockets={h:null, v:null, h2:null, v2:null};
+const activeRockets={h:null, v:null, h2:null, v2:null, d1:null, d2:null};
 
 function buildRocketDOM(){
   const rocket=document.createElement("div");
@@ -874,23 +874,26 @@ function triggerRocketCollision(cx,cy){
   })(performance.now());
 }
 
-// Check collision between any horizontal and vertical rockets
+// Check collision between any pair of rockets
 function checkRocketCollision(){
-  const hKeys=['h','h2'], vKeys=['v','v2'];
-  for(const hk of hKeys){
-    for(const vk of vKeys){
-      const hr=activeRockets[hk], vr=activeRockets[vk];
-      if(!hr||!vr||!hr.alive||!vr.alive) continue;
-      const dist=Math.hypot(hr.x-vr.x, hr.y-vr.y);
+  const allKeys=['h','h2','v','v2','d1','d2'];
+  const respawnMap={
+    h:createHorizontalRocket, h2:createHorizontalRocket2,
+    v:createVerticalRocket, v2:createVerticalRocket2,
+    d1:createDiagonalRocket1, d2:createDiagonalRocket2
+  };
+  for(let i=0;i<allKeys.length;i++){
+    for(let j=i+1;j<allKeys.length;j++){
+      const a=activeRockets[allKeys[i]], b=activeRockets[allKeys[j]];
+      if(!a||!b||!a.alive||!b.alive) continue;
+      const dist=Math.hypot(a.x-b.x, a.y-b.y);
       if(dist<35){
-        const cx=(hr.x+vr.x)/2, cy=(hr.y+vr.y)/2;
-        hr.alive=false; vr.alive=false;
-        hr.el.remove(); vr.el.remove();
+        const cx=(a.x+b.x)/2, cy=(a.y+b.y)/2;
+        a.alive=false; b.alive=false;
+        a.el.remove(); b.el.remove();
         triggerRocketCollision(cx,cy);
-        if(hk==='h') setTimeout(createHorizontalRocket,800);
-        else setTimeout(createHorizontalRocket2,800);
-        if(vk==='v') setTimeout(createVerticalRocket,1000);
-        else setTimeout(createVerticalRocket2,1000);
+        setTimeout(respawnMap[allKeys[i]],800);
+        setTimeout(respawnMap[allKeys[j]],1000);
         return true;
       }
     }
@@ -1056,10 +1059,70 @@ function createVerticalRocket2(){
   animate();
 }
 
+// ── Diagonal Rocket 1 (top-left → bottom-right) ──
+function createDiagonalRocket1(){
+  const rocket=buildRocketDOM();
+  rocket.style.transform='rotate(135deg)';
+  document.body.appendChild(rocket);
+
+  let x=-50;
+  let y=-50;
+  const speed=3+Math.random()*1.5;
+  const info={el:rocket, x:x, y:y, alive:true};
+  activeRockets.d1=info;
+
+  function animate(){
+    if(!info.alive) return;
+    x+=speed*0.707; y+=speed*0.707;
+    info.x=x; info.y=y;
+    rocket.style.left=x+'px';
+    rocket.style.top=y+'px';
+    if(x>window.innerWidth+60||y>window.innerHeight+60){
+      info.alive=false;
+      rocket.remove();
+      setTimeout(createDiagonalRocket1,800);
+      return;
+    }
+    if(!checkRocketCollision()) requestAnimationFrame(animate);
+  }
+  animate();
+}
+
+// ── Diagonal Rocket 2 (top-right → bottom-left) ──
+function createDiagonalRocket2(){
+  const rocket=buildRocketDOM();
+  rocket.style.transform='rotate(-135deg)';
+  document.body.appendChild(rocket);
+
+  let x=window.innerWidth+50;
+  let y=-50;
+  const speed=3+Math.random()*1.5;
+  const info={el:rocket, x:x, y:y, alive:true};
+  activeRockets.d2=info;
+
+  function animate(){
+    if(!info.alive) return;
+    x-=speed*0.707; y+=speed*0.707;
+    info.x=x; info.y=y;
+    rocket.style.left=x+'px';
+    rocket.style.top=y+'px';
+    if(x<-60||y>window.innerHeight+60){
+      info.alive=false;
+      rocket.remove();
+      setTimeout(createDiagonalRocket2,800);
+      return;
+    }
+    if(!checkRocketCollision()) requestAnimationFrame(animate);
+  }
+  animate();
+}
+
 createHorizontalRocket();
 createVerticalRocket();
 setTimeout(createHorizontalRocket2,500);
 setTimeout(createVerticalRocket2,800);
+setTimeout(createDiagonalRocket1,1200);
+setTimeout(createDiagonalRocket2,1600);
 
 // ═══════════════════════════════════════════
 // FLOATING ASTRONAUT — drifts up & down
@@ -1134,9 +1197,10 @@ function createAstronaut(){
   }
   drift();
 }
-// Spawn astronauts (responsive count)
-createAstronaut();
-if(ASTRONAUT_COUNT>1) setTimeout(createAstronaut,4000);
+// Spawn astronauts
+for(let ai=0;ai<ASTRONAUT_COUNT;ai++){
+  setTimeout(createAstronaut, ai*2000);
+}
 
 // ═══════════════════════════════════════════
 // ISS SPACE STATION — moves left ↔ right
@@ -1777,7 +1841,9 @@ function createAsteroid(){
       {key:'h', respawn:createHorizontalRocket},
       {key:'h2', respawn:createHorizontalRocket2},
       {key:'v', respawn:createVerticalRocket},
-      {key:'v2', respawn:createVerticalRocket2}
+      {key:'v2', respawn:createVerticalRocket2},
+      {key:'d1', respawn:createDiagonalRocket1},
+      {key:'d2', respawn:createDiagonalRocket2}
     ];
     for(const rc of rocketChecks){
       const rk=activeRockets[rc.key];
