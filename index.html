@@ -1,729 +1,508 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>Orbit Clock with Realistic Rocket</title>
+<meta name="theme-color" content="#020617">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="description" content="A mesmerizing space-themed orbit clock with rockets, astronauts, black holes, and more">
+<link rel="manifest" href="manifest.json">
+<title>Orbit Clock — Space Experience</title>
 <style>
 :root{
-  --clock-size:420px;
-  --center:210;
-  --rHour:160;
-  --rMinute:120;
-  --rSecond:85;
-  --scale:1;
+  --clock-size:420px;--center:210;--rHour:160;--rMinute:120;--rSecond:85;--scale:1;
+  --bg:#020617;--text:#fff;--sun-color:gold;--sun-glow:orange;
+  --orbit-border:rgba(255,255,255,.12);--orbit-glow:rgba(255,255,255,.15);
+  --hour-color:#60a5fa;--minute-color:#34d399;
+  --ui-bg:rgba(0,0,0,0.6);--ui-border:rgba(255,255,255,0.15);--ui-text:#e0e0ff;
 }
-body{
-  margin:0;
-  height:100vh;
-  height:100dvh;
-  display:flex;
-  flex-direction:column;
-  justify-content:center;
-  align-items:center;
-  background:#020617;
-  font-family:sans-serif;
-  overflow:hidden;
-  touch-action:manipulation;
-  -ms-touch-action:manipulation;
-  -webkit-text-size-adjust:100%;
-  -moz-text-size-adjust:100%;
-  text-size-adjust:100%;
-}
-*{touch-action:manipulation;}
-html{
-  overflow:hidden;
-  position:fixed;
-  width:100%;
-  height:100%;
-  touch-action:manipulation;
-}
-#scene{
-  width:100%;height:100%;
-  display:flex;
-  flex-direction:column;
-  justify-content:center;
-  align-items:center;
-  position:relative;
-}
-
-/* Twinkling stars */
-.star{
-  position:absolute;
-  width:2px;
-  height:2px;
-  background:white;
-  border-radius:50%;
-  opacity:0.8;
-  animation:twinkle 2s infinite alternate;
-}
-@keyframes twinkle{
-  0%{opacity:0.2;}
-  50%{opacity:1;}
-  100%{opacity:0.2;}
-}
-
-/* Clock container */
-.clock{
-  width:var(--clock-size);
-  height:var(--clock-size);
-  position:relative;
-}
-
-/* Sun */
-.sun{
-  position:absolute;
-  width:32px;
-  height:32px;
-  background:gold;
-  border-radius:50%;
-  top:50%;
-  left:50%;
-  transform:translate(-50%,-50%);
-  box-shadow:0 0 30px gold,0 0 70px orange;
-}
-
-/* Orbits */
-.orbit{
-  position:absolute;
-  border-radius:50%;
-  top:50%;
-  left:50%;
-  transform:translate(-50%,-50%);
-  border:1px solid rgba(255,255,255,.12);
-  box-shadow:0 0 12px rgba(255,255,255,.15);
-}
-
-.hourOrbit{width:320px;height:320px;}
-.minuteOrbit{width:240px;height:240px;}
-.secondOrbit{width:170px;height:170px;}
-
-/* Planets */
-.planet{
-  position:absolute;
-  border-radius:50%;
-  transform:translate(-50%,-50%);
-  text-align:center;
-  transition: all 0.5s ease-out;
-}
-
-.hourPlanet{
-  width:16px;
-  height:16px;
-  background:#60a5fa;
-  box-shadow:0 0 10px #60a5fa;
-}
-.minutePlanet{
-  width:12px;
-  height:12px;
-  background:#34d399;
-  box-shadow:0 0 10px #34d399;
-}
-.secondPlanet{
-  width:26px;
-  height:20px;
-  background:transparent;
-  box-shadow:none;
-  border-radius:0;
-  overflow:visible;
-}
-
-/* Labels */
-.label{
-  position:absolute;
-  color:white;
-  font-size:12px;
-  transform:translate(-50%,-150%);
-  pointer-events:none;
-}
-
-/* Digital Time */
-.digitalTime{
-  position:absolute;
-  width:100%;
-  bottom:20px;
-  text-align:center;
-  color:#fff;
-  font-size:24px;
-  font-family:monospace;
-  padding:10px 0;
-  background:
-    radial-gradient(ellipse 120% 60% at 50% 50%,
-      rgba(80,60,140,0.35) 0%,
-      rgba(40,30,100,0.25) 20%,
-      rgba(20,15,60,0.15) 40%,
-      transparent 70%),
-    radial-gradient(ellipse 100% 40% at 40% 55%,
-      rgba(100,80,180,0.2) 0%,
-      rgba(60,40,120,0.15) 30%,
-      transparent 60%),
-    radial-gradient(ellipse 80% 35% at 65% 45%,
-      rgba(140,100,200,0.15) 0%,
-      rgba(80,50,150,0.1) 25%,
-      transparent 55%),
-    radial-gradient(ellipse 200% 100% at 50% 50%,
-      rgba(10,5,30,0.4) 0%,
-      rgba(5,2,20,0.3) 40%,
-      transparent 80%);
-  border-radius:12px;
-  overflow:hidden;
-  text-shadow:0 0 8px rgba(180,160,255,0.6),0 0 20px rgba(120,100,200,0.3);
-  z-index:1;
-}
-.digitalTime::before{
-  content:'';
-  position:absolute;
-  top:0;left:0;right:0;bottom:0;
-  background-image:
-    radial-gradient(1px 1px at 10% 20%, rgba(255,255,255,0.7) 0%, transparent 100%),
-    radial-gradient(1px 1px at 25% 60%, rgba(200,180,255,0.6) 0%, transparent 100%),
-    radial-gradient(1px 1px at 40% 30%, rgba(255,255,255,0.5) 0%, transparent 100%),
-    radial-gradient(1px 1px at 55% 70%, rgba(180,200,255,0.6) 0%, transparent 100%),
-    radial-gradient(1px 1px at 70% 15%, rgba(255,255,255,0.7) 0%, transparent 100%),
-    radial-gradient(1px 1px at 85% 50%, rgba(200,180,255,0.5) 0%, transparent 100%),
-    radial-gradient(1px 1px at 15% 80%, rgba(255,220,255,0.4) 0%, transparent 100%),
-    radial-gradient(1px 1px at 60% 45%, rgba(255,255,255,0.6) 0%, transparent 100%),
-    radial-gradient(1.5px 1.5px at 30% 40%, rgba(255,255,255,0.8) 0%, transparent 100%),
-    radial-gradient(1.5px 1.5px at 75% 35%, rgba(200,200,255,0.7) 0%, transparent 100%),
-    radial-gradient(1px 1px at 90% 75%, rgba(255,200,255,0.5) 0%, transparent 100%),
-    radial-gradient(1px 1px at 5% 50%, rgba(255,255,255,0.4) 0%, transparent 100%),
-    radial-gradient(1px 1px at 50% 10%, rgba(180,180,255,0.6) 0%, transparent 100%),
-    radial-gradient(1px 1px at 45% 85%, rgba(255,255,255,0.5) 0%, transparent 100%),
-    radial-gradient(1px 1px at 80% 90%, rgba(200,160,255,0.4) 0%, transparent 100%);
-  pointer-events:none;
-  z-index:-1;
-  animation:milkyShimmer 4s ease-in-out infinite alternate;
-}
-@keyframes milkyShimmer{
-  0%{opacity:0.7;filter:brightness(0.9);}
-  50%{opacity:1;filter:brightness(1.1);}
-  100%{opacity:0.8;filter:brightness(1);}
-}
-
-/* Meteor */
-.meteor{
-  position:absolute;
-  width:4px;
-  height:2px;
-  background:yellow;
-  border-radius:50%;
-  box-shadow:0 0 8px yellow,0 0 12px orange;
-  opacity:0;
-  pointer-events:none;
-}
-
-/* Rocket */
-.rocket{
-  position:absolute;
-  width:12px;
-  height:32px;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  transform-origin:center center;
-}
-
-/* Nose cone */
-.rocket .nose{
-  width:0;
-  height:0;
-  border-left:6px solid transparent;
-  border-right:6px solid transparent;
-  border-bottom:10px solid red;
-}
-
-/* Body */
-.rocket .body{
-  width:8px;
-  height:14px;
-  background:#ccc;
-  border-radius:4px;
-  position:relative;
-}
-
-/* Fins */
-.rocket .fin-left, .rocket .fin-right{
-  position:absolute;
-  bottom:0;
-  width:4px;
-  height:4px;
-  background:red;
-}
-.rocket .fin-left{left:-4px; transform:rotate(-30deg);}
-.rocket .fin-right{right:-4px; transform:rotate(30deg);}
-
-/* Flame */
-.rocket .flame{
-  width:4px;
-  height:6px;
-  background:orange;
-  border-radius:50%;
-  margin-top:2px;
-  box-shadow:0 0 8px orange,0 0 12px yellow;
-  animation:flame 0.2s infinite alternate;
-}
-@keyframes flame{
-  0%{height:4px;}
-  100%{height:8px;}
-}
-
-/* Explosion */
-.explosion{
-  position:absolute;
-  width:10px;
-  height:10px;
-  border-radius:50%;
-  background:orange;
-  box-shadow:0 0 12px yellow,0 0 20px red;
-  pointer-events:none;
-  opacity:1;
-}
-
-/* Footer */
-footer{
-  width:100%;
-  text-align:center;
-  padding:10px 0;
-  color:white;
-  font-size:14px;
-  background:rgba(0,0,0,0.2);
-  position:absolute;
-  bottom:0;
-  z-index:20;
-}
-
-/* ── Floating Astronaut ── */
-.astronaut{
-  position:absolute;
-  pointer-events:none;
-  z-index:10;
-}
-.astronaut svg{
-  filter:drop-shadow(0 0 6px rgba(255,255,255,0.4));
-}
-
-/* ── ISS Space Station ── */
-.iss-wrapper{
-  position:absolute;
-  pointer-events:none;
-  z-index:8;
-}
-.iss-wrapper svg{
-  filter:drop-shadow(0 0 8px rgba(100,200,255,0.5));
-}
-
-/* ── Satellites orbiting ISS ── */
-.sat{
-  position:absolute;
-  width:6px;
-  height:6px;
-  pointer-events:none;
-  z-index:9;
-}
-.sat-body{
-  width:4px;
-  height:4px;
-  background:#aad4ff;
-  border-radius:1px;
-  position:absolute;
-  top:1px;left:1px;
-  box-shadow:0 0 4px #aad4ff,0 0 8px #5bc0ff;
-}
-.sat-panel-l,.sat-panel-r{
-  position:absolute;
-  width:6px;
-  height:2px;
-  background:linear-gradient(90deg,#3b82f6,#60a5fa);
-  top:2px;
-  box-shadow:0 0 3px #3b82f6;
-}
-.sat-panel-l{right:100%;margin-right:0px;}
-.sat-panel-r{left:100%;margin-left:0px;}
-.sat-thrust{
-  position:absolute;
-  width:2px;
-  height:3px;
-  background:orange;
-  border-radius:50%;
-  bottom:-3px;
-  left:2px;
-  box-shadow:0 0 4px orange,0 0 6px yellow;
-  animation:satThrust 0.15s infinite alternate;
-}
-@keyframes satThrust{
-  0%{height:2px;opacity:0.7;}
-  100%{height:4px;opacity:1;}
-}
-
-/* ── Black Hole ── */
-.blackhole{
-  position:absolute;
-  pointer-events:none;
-  z-index:5;
-  transform:translate(-50%,-50%);
-}
-.bh-core{
-  width:36px;
-  height:36px;
-  background:radial-gradient(circle,#000 55%,#0a0015 70%,transparent 100%);
-  border-radius:50%;
-  position:absolute;
-  top:50%;left:50%;
-  transform:translate(-50%,-50%);
-  box-shadow:0 0 25px 8px rgba(80,0,120,0.7),0 0 50px 15px rgba(40,0,80,0.4);
-}
-.bh-disk{
-  width:76px;
-  height:76px;
-  position:absolute;
-  top:50%;left:50%;
-  transform:translate(-50%,-50%);
-  border-radius:50%;
-  border:3px solid transparent;
-  border-top-color:rgba(255,140,40,0.8);
-  border-right-color:rgba(255,80,200,0.6);
-  border-bottom-color:rgba(200,60,255,0.5);
-  border-left-color:rgba(255,200,60,0.7);
-  animation:bhSpin 3s linear infinite;
-  box-shadow:0 0 16px rgba(255,100,50,0.5),inset 0 0 16px rgba(180,60,255,0.4);
-}
-.bh-disk2{
-  width:60px;
-  height:60px;
-  position:absolute;
-  top:50%;left:50%;
-  transform:translate(-50%,-50%);
-  border-radius:50%;
-  border:2px solid transparent;
-  border-top-color:rgba(255,200,100,0.6);
-  border-bottom-color:rgba(180,80,255,0.5);
-  animation:bhSpin 2s linear infinite reverse;
-}
-.bh-glow{
-  width:90px;
-  height:90px;
-  position:absolute;
-  top:50%;left:50%;
-  transform:translate(-50%,-50%);
-  border-radius:50%;
-  background:radial-gradient(circle,transparent 40%,rgba(120,40,200,0.15) 60%,rgba(200,80,255,0.08) 80%,transparent 100%);
-  animation:bhPulse 2s ease-in-out infinite alternate;
-}
-@keyframes bhSpin{
-  0%{transform:translate(-50%,-50%) rotate(0deg);}
-  100%{transform:translate(-50%,-50%) rotate(360deg);}
-}
-@keyframes bhPulse{
-  0%{opacity:0.6;transform:translate(-50%,-50%) scale(1);}
-  100%{opacity:1;transform:translate(-50%,-50%) scale(1.15);}
-}
-
-/* ── Big Bang Flash ── */
-.bigbang-flash{
-  position:fixed;
-  top:0;left:0;
-  width:100vw;height:100vh;
-  background:white;
-  z-index:9999;
-  pointer-events:none;
-  opacity:0;
-}
-/* ── Shockwave Ring ── */
-.shockwave{
-  position:absolute;
-  border-radius:50%;
-  border:4px solid rgba(255,200,100,0.8);
-  box-shadow:0 0 30px rgba(255,150,50,0.6),0 0 60px rgba(255,100,200,0.3),inset 0 0 20px rgba(255,255,200,0.2);
-  pointer-events:none;
-  z-index:100;
-  transform:translate(-50%,-50%);
-}
-/* ── Debris Particles ── */
-.debris{
-  position:absolute;
-  border-radius:50%;
-  pointer-events:none;
-  z-index:99;
-}
-/* ── Suck-in effect for eaten objects ── */
-.being-eaten{
-  transition:all 0.6s cubic-bezier(0.6,0,1,1) !important;
-}
-
-/* ── Rocket Collision Explosion ── */
-.rocket-collision{
-  position:absolute;
-  pointer-events:none;
-  z-index:50;
-  transform:translate(-50%,-50%);
-}
-.collision-core{
-  width:40px;
-  height:40px;
-  background:radial-gradient(circle,#fff 0%,#ff6 30%,#f80 55%,rgba(255,0,0,0.6) 75%,transparent 100%);
-  border-radius:50%;
-  position:absolute;
-  top:50%;left:50%;
-  transform:translate(-50%,-50%);
-  box-shadow:0 0 40px #ff6,0 0 80px #f80,0 0 120px rgba(255,0,0,0.5);
-}
-.collision-ring{
-  position:absolute;
-  top:50%;left:50%;
-  transform:translate(-50%,-50%);
-  border-radius:50%;
-  border:3px solid rgba(255,200,50,0.8);
-  box-shadow:0 0 20px rgba(255,150,0,0.6),0 0 40px rgba(255,80,0,0.3);
-}
-.collision-spark{
-  position:absolute;
-  border-radius:50%;
-  pointer-events:none;
-  z-index:51;
-}
-
-/* ═══════════════════════════════════════════
-   MOBILE RESPONSIVE
-   ═══════════════════════════════════════════ */
+[data-theme="sunset"]{--bg:#1a0a2e;--text:#ffd4a8;--sun-color:#ff6b35;--sun-glow:#ff3e00;--orbit-border:rgba(255,150,80,.18);--orbit-glow:rgba(255,100,50,.2);--hour-color:#ff9a5c;--minute-color:#ffcf56;--ui-bg:rgba(40,10,30,0.7);--ui-border:rgba(255,150,80,0.2);--ui-text:#ffddc8;}
+[data-theme="ocean"]{--bg:#001a33;--text:#a8e0ff;--sun-color:#00cfff;--sun-glow:#007aff;--orbit-border:rgba(0,180,255,.15);--orbit-glow:rgba(0,120,255,.2);--hour-color:#00b4d8;--minute-color:#48cae4;--ui-bg:rgba(0,20,50,0.7);--ui-border:rgba(0,180,255,0.2);--ui-text:#b0e0ff;}
+[data-theme="aurora"]{--bg:#0a1628;--text:#a8ffc8;--sun-color:#5eff5e;--sun-glow:#00cc44;--orbit-border:rgba(80,255,120,.12);--orbit-glow:rgba(0,200,80,.15);--hour-color:#4ade80;--minute-color:#22d3ee;--ui-bg:rgba(5,20,15,0.7);--ui-border:rgba(80,255,120,0.2);--ui-text:#c0ffd8;}
+[data-theme="light"]{--bg:#e8ecf4;--text:#1a1a2e;--sun-color:#ffa500;--sun-glow:#ff6b00;--orbit-border:rgba(0,0,0,.12);--orbit-glow:rgba(0,0,0,.08);--hour-color:#2563eb;--minute-color:#059669;--ui-bg:rgba(255,255,255,0.85);--ui-border:rgba(0,0,0,0.12);--ui-text:#1a1a2e;}
+body{margin:0;height:100vh;height:100dvh;display:flex;flex-direction:column;justify-content:center;align-items:center;background:var(--bg);font-family:'Segoe UI',system-ui,sans-serif;overflow:hidden;touch-action:manipulation;-ms-touch-action:manipulation;-webkit-text-size-adjust:100%;-moz-text-size-adjust:100%;text-size-adjust:100%;transition:background 0.6s;}
+*{touch-action:manipulation;box-sizing:border-box;}
+html{overflow:hidden;position:fixed;width:100%;height:100%;touch-action:manipulation;}
+#scene{width:100%;height:100%;display:flex;flex-direction:column;justify-content:center;align-items:center;position:relative;}
+.star{position:absolute;width:2px;height:2px;background:white;border-radius:50%;opacity:0.8;animation:twinkle 2s infinite alternate;}
+.star-layer-1{animation-duration:2s;}.star-layer-2{animation-duration:3s;opacity:0.5;}.star-layer-3{animation-duration:4s;opacity:0.3;width:1px;height:1px;}
+@keyframes twinkle{0%{opacity:0.2;}50%{opacity:1;}100%{opacity:0.2;}}
+.nebula{position:absolute;border-radius:50%;pointer-events:none;z-index:0;filter:blur(60px);opacity:0.12;animation:nebulaDrift 30s ease-in-out infinite alternate;}
+@keyframes nebulaDrift{0%{transform:translate(0,0) scale(1);}50%{transform:translate(20px,-15px) scale(1.08);}100%{transform:translate(-10px,10px) scale(0.95);}}
+.constellation-canvas{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;opacity:0.35;}
+.clock{width:var(--clock-size);height:var(--clock-size);position:relative;}
+.sun{position:absolute;width:32px;height:32px;background:var(--sun-color);border-radius:50%;top:50%;left:50%;transform:translate(-50%,-50%);box-shadow:0 0 30px var(--sun-color),0 0 70px var(--sun-glow);}
+.orbit{position:absolute;border-radius:50%;top:50%;left:50%;transform:translate(-50%,-50%);border:1px solid var(--orbit-border);box-shadow:0 0 12px var(--orbit-glow);}
+.hourOrbit{width:320px;height:320px;}.minuteOrbit{width:240px;height:240px;}.secondOrbit{width:170px;height:170px;}
+.planet{position:absolute;border-radius:50%;transform:translate(-50%,-50%);text-align:center;transition:all 0.5s ease-out;}
+.hourPlanet{width:16px;height:16px;background:var(--hour-color);box-shadow:0 0 10px var(--hour-color);}
+.minutePlanet{width:12px;height:12px;background:var(--minute-color);box-shadow:0 0 10px var(--minute-color);}
+.secondPlanet{width:26px;height:20px;background:transparent;box-shadow:none;border-radius:0;overflow:visible;}
+.label{position:absolute;color:var(--text);font-size:12px;transform:translate(-50%,-150%);pointer-events:none;}
+.digitalTime{position:absolute;width:100%;bottom:20px;text-align:center;color:var(--text);font-size:24px;font-family:'Courier New',monospace;padding:10px 0;background:radial-gradient(ellipse 120% 60% at 50% 50%,rgba(80,60,140,0.35) 0%,rgba(40,30,100,0.25) 20%,rgba(20,15,60,0.15) 40%,transparent 70%),radial-gradient(ellipse 100% 40% at 40% 55%,rgba(100,80,180,0.2) 0%,rgba(60,40,120,0.15) 30%,transparent 60%),radial-gradient(ellipse 80% 35% at 65% 45%,rgba(140,100,200,0.15) 0%,rgba(80,50,150,0.1) 25%,transparent 55%),radial-gradient(ellipse 200% 100% at 50% 50%,rgba(10,5,30,0.4) 0%,rgba(5,2,20,0.3) 40%,transparent 80%);border-radius:12px;overflow:hidden;text-shadow:0 0 8px rgba(180,160,255,0.6),0 0 20px rgba(120,100,200,0.3);z-index:1;}
+.digitalTime::before{content:'';position:absolute;top:0;left:0;right:0;bottom:0;background-image:radial-gradient(1px 1px at 10% 20%,rgba(255,255,255,0.7) 0%,transparent 100%),radial-gradient(1px 1px at 25% 60%,rgba(200,180,255,0.6) 0%,transparent 100%),radial-gradient(1px 1px at 40% 30%,rgba(255,255,255,0.5) 0%,transparent 100%),radial-gradient(1px 1px at 55% 70%,rgba(180,200,255,0.6) 0%,transparent 100%),radial-gradient(1px 1px at 70% 15%,rgba(255,255,255,0.7) 0%,transparent 100%),radial-gradient(1px 1px at 85% 50%,rgba(200,180,255,0.5) 0%,transparent 100%),radial-gradient(1px 1px at 15% 80%,rgba(255,220,255,0.4) 0%,transparent 100%),radial-gradient(1px 1px at 60% 45%,rgba(255,255,255,0.6) 0%,transparent 100%),radial-gradient(1.5px 1.5px at 30% 40%,rgba(255,255,255,0.8) 0%,transparent 100%),radial-gradient(1.5px 1.5px at 75% 35%,rgba(200,200,255,0.7) 0%,transparent 100%),radial-gradient(1px 1px at 90% 75%,rgba(255,200,255,0.5) 0%,transparent 100%),radial-gradient(1px 1px at 5% 50%,rgba(255,255,255,0.4) 0%,transparent 100%),radial-gradient(1px 1px at 50% 10%,rgba(180,180,255,0.6) 0%,transparent 100%),radial-gradient(1px 1px at 45% 85%,rgba(255,255,255,0.5) 0%,transparent 100%),radial-gradient(1px 1px at 80% 90%,rgba(200,160,255,0.4) 0%,transparent 100%);pointer-events:none;z-index:-1;animation:milkyShimmer 4s ease-in-out infinite alternate;}
+@keyframes milkyShimmer{0%{opacity:0.7;filter:brightness(0.9);}50%{opacity:1;filter:brightness(1.1);}100%{opacity:0.8;filter:brightness(1);}}
+.meteor{position:absolute;width:4px;height:2px;background:yellow;border-radius:50%;box-shadow:0 0 8px yellow,0 0 12px orange;opacity:0;pointer-events:none;}
+.rocket{position:absolute;width:12px;height:32px;display:flex;flex-direction:column;align-items:center;transform-origin:center center;}
+.rocket .nose{width:0;height:0;border-left:6px solid transparent;border-right:6px solid transparent;border-bottom:10px solid red;}
+.rocket .body{width:8px;height:14px;background:#ccc;border-radius:4px;position:relative;}
+.rocket .fin-left,.rocket .fin-right{position:absolute;bottom:0;width:4px;height:4px;background:red;}
+.rocket .fin-left{left:-4px;transform:rotate(-30deg);}.rocket .fin-right{right:-4px;transform:rotate(30deg);}
+.rocket .flame{width:4px;height:6px;background:orange;border-radius:50%;margin-top:2px;box-shadow:0 0 8px orange,0 0 12px yellow;animation:flame 0.2s infinite alternate;}
+@keyframes flame{0%{height:4px;}100%{height:8px;}}
+.explosion{position:absolute;width:10px;height:10px;border-radius:50%;background:orange;box-shadow:0 0 12px yellow,0 0 20px red;pointer-events:none;opacity:1;}
+footer{width:100%;text-align:center;padding:10px 0;color:var(--text);font-size:14px;background:rgba(0,0,0,0.2);position:absolute;bottom:0;z-index:20;}
+.astronaut{position:absolute;pointer-events:none;z-index:10;}.astronaut svg{filter:drop-shadow(0 0 6px rgba(255,255,255,0.4));}
+.iss-wrapper{position:absolute;pointer-events:none;z-index:8;}.iss-wrapper svg{filter:drop-shadow(0 0 8px rgba(100,200,255,0.5));}
+.sat{position:absolute;width:6px;height:6px;pointer-events:none;z-index:9;}
+.sat-body{width:4px;height:4px;background:#aad4ff;border-radius:1px;position:absolute;top:1px;left:1px;box-shadow:0 0 4px #aad4ff,0 0 8px #5bc0ff;}
+.sat-panel-l,.sat-panel-r{position:absolute;width:6px;height:2px;background:linear-gradient(90deg,#3b82f6,#60a5fa);top:2px;box-shadow:0 0 3px #3b82f6;}
+.sat-panel-l{right:100%;}.sat-panel-r{left:100%;}
+.sat-thrust{position:absolute;width:2px;height:3px;background:orange;border-radius:50%;bottom:-3px;left:2px;box-shadow:0 0 4px orange,0 0 6px yellow;animation:satThrust 0.15s infinite alternate;}
+@keyframes satThrust{0%{height:2px;opacity:0.7;}100%{height:4px;opacity:1;}}
+.blackhole{position:absolute;pointer-events:none;z-index:5;transform:translate(-50%,-50%);}
+.bh-core{width:36px;height:36px;background:radial-gradient(circle,#000 55%,#0a0015 70%,transparent 100%);border-radius:50%;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);box-shadow:0 0 25px 8px rgba(80,0,120,0.7),0 0 50px 15px rgba(40,0,80,0.4);}
+.bh-disk{width:76px;height:76px;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);border-radius:50%;border:3px solid transparent;border-top-color:rgba(255,140,40,0.8);border-right-color:rgba(255,80,200,0.6);border-bottom-color:rgba(200,60,255,0.5);border-left-color:rgba(255,200,60,0.7);animation:bhSpin 3s linear infinite;box-shadow:0 0 16px rgba(255,100,50,0.5),inset 0 0 16px rgba(180,60,255,0.4);}
+.bh-disk2{width:60px;height:60px;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);border-radius:50%;border:2px solid transparent;border-top-color:rgba(255,200,100,0.6);border-bottom-color:rgba(180,80,255,0.5);animation:bhSpin 2s linear infinite reverse;}
+.bh-glow{width:90px;height:90px;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(circle,transparent 40%,rgba(120,40,200,0.15) 60%,rgba(200,80,255,0.08) 80%,transparent 100%);animation:bhPulse 2s ease-in-out infinite alternate;}
+@keyframes bhSpin{0%{transform:translate(-50%,-50%) rotate(0deg);}100%{transform:translate(-50%,-50%) rotate(360deg);}}
+@keyframes bhPulse{0%{opacity:0.6;transform:translate(-50%,-50%) scale(1);}100%{opacity:1;transform:translate(-50%,-50%) scale(1.15);}}
+.bigbang-flash{position:fixed;top:0;left:0;width:100vw;height:100vh;background:white;z-index:9999;pointer-events:none;opacity:0;}
+.shockwave{position:absolute;border-radius:50%;border:4px solid rgba(255,200,100,0.8);box-shadow:0 0 30px rgba(255,150,50,0.6),0 0 60px rgba(255,100,200,0.3),inset 0 0 20px rgba(255,255,200,0.2);pointer-events:none;z-index:100;transform:translate(-50%,-50%);}
+.debris{position:absolute;border-radius:50%;pointer-events:none;z-index:99;}
+.being-eaten{transition:all 0.6s cubic-bezier(0.6,0,1,1) !important;}
+.rocket-collision{position:absolute;pointer-events:none;z-index:50;transform:translate(-50%,-50%);}
+.collision-core{width:40px;height:40px;background:radial-gradient(circle,#fff 0%,#ff6 30%,#f80 55%,rgba(255,0,0,0.6) 75%,transparent 100%);border-radius:50%;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);box-shadow:0 0 40px #ff6,0 0 80px #f80,0 0 120px rgba(255,0,0,0.5);}
+.collision-ring{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);border-radius:50%;border:3px solid rgba(255,200,50,0.8);box-shadow:0 0 20px rgba(255,150,0,0.6),0 0 40px rgba(255,80,0,0.3);}
+.collision-spark{position:absolute;border-radius:50%;pointer-events:none;z-index:51;}
+.asteroid{position:absolute;pointer-events:none;z-index:7;}.asteroid svg{filter:drop-shadow(0 0 4px rgba(200,150,80,0.5));}
+.asteroid-explosion{position:absolute;pointer-events:none;z-index:52;transform:translate(-50%,-50%);}
+.asteroid-chunk{position:absolute;border-radius:30%;pointer-events:none;z-index:52;}
+/* === NEW FEATURE STYLES === */
+.ufo{position:absolute;pointer-events:none;z-index:11;}
+.comet{position:absolute;pointer-events:none;z-index:6;}
+.comet-tail{position:absolute;border-radius:50%;pointer-events:none;}
+.earth-system{position:absolute;bottom:60px;right:30px;pointer-events:none;z-index:3;width:60px;height:60px;}
+.earth-sphere{width:50px;height:50px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#4a9eff 0%,#1a6bc4 30%,#0d4a8a 60%,#072f5f 100%);box-shadow:0 0 15px rgba(74,158,255,0.4),0 0 30px rgba(74,158,255,0.2);position:relative;overflow:hidden;}
+.earth-land{position:absolute;border-radius:40%;background:rgba(34,139,34,0.6);}
+.moon-orbit{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:80px;height:80px;animation:earthRotate 8s linear infinite;}
+.moon{position:absolute;width:10px;height:10px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#e8e8e8,#aaa);box-shadow:0 0 5px rgba(200,200,200,0.4);top:-5px;left:50%;transform:translateX(-50%);}
+@keyframes earthRotate{0%{transform:translate(-50%,-50%) rotate(0deg);}100%{transform:translate(-50%,-50%) rotate(360deg);}}
+.wormhole{position:absolute;pointer-events:none;z-index:4;transform:translate(-50%,-50%);}
+@keyframes wormholeSpin{0%{transform:translate(-50%,-50%) rotate(0deg);}100%{transform:translate(-50%,-50%) rotate(360deg);}}
+@keyframes wormholePulse{0%{opacity:0.4;transform:translate(-50%,-50%) scale(0.9);}100%{opacity:0.8;transform:translate(-50%,-50%) scale(1.1);}}
+.firework-particle{position:absolute;border-radius:50%;pointer-events:none;z-index:200;}
+.orbit-trail-canvas{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;opacity:0.4;}
+/* UI Buttons */
+.ui-btn{position:fixed;z-index:1000;width:40px;height:40px;border-radius:50%;border:1px solid var(--ui-border);background:var(--ui-bg);color:var(--ui-text);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);transition:all 0.3s;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent;}
+.ui-btn:hover{transform:scale(1.1);border-color:rgba(255,255,255,0.3);}
+.ui-btn:active{transform:scale(0.95);}
+#btnTheme{top:12px;right:12px;}#btnSettings{top:12px;right:60px;}#btnScreenshot{top:12px;right:108px;}#btnShare{top:12px;right:156px;}#btnSound{top:12px;left:12px;}#btnStopwatch{top:60px;left:12px;}
+/* Settings Panel */
+.settings-panel{position:fixed;top:0;right:-320px;width:300px;height:100%;background:var(--ui-bg);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-left:1px solid var(--ui-border);z-index:2000;transition:right 0.4s cubic-bezier(0.4,0,0.2,1);padding:60px 20px 20px;overflow-y:auto;color:var(--ui-text);font-size:14px;}
+.settings-panel.open{right:0;}
+.settings-panel h3{margin:0 0 15px;font-size:16px;color:var(--text);}
+.settings-panel .close-btn{position:absolute;top:12px;right:12px;width:32px;height:32px;border:none;background:none;color:var(--ui-text);font-size:22px;cursor:pointer;border-radius:50%;display:flex;align-items:center;justify-content:center;}
+.settings-panel .close-btn:hover{background:rgba(255,255,255,0.1);}
+.setting-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--ui-border);}
+.setting-row label{flex:1;}
+.toggle-switch{width:44px;height:24px;background:rgba(255,255,255,0.15);border-radius:12px;position:relative;cursor:pointer;transition:background 0.3s;flex-shrink:0;}
+.toggle-switch.on{background:rgba(96,165,250,0.7);}
+.toggle-switch::after{content:'';position:absolute;width:20px;height:20px;background:#fff;border-radius:50%;top:2px;left:2px;transition:left 0.3s;}
+.toggle-switch.on::after{left:22px;}
+.theme-dots{display:flex;gap:10px;padding:12px 0;justify-content:center;}
+.theme-dot{width:32px;height:32px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:all 0.3s;}
+.theme-dot:hover,.theme-dot.active{border-color:var(--text);transform:scale(1.15);}
+.theme-dot[data-t="dark"]{background:#020617;}.theme-dot[data-t="sunset"]{background:linear-gradient(135deg,#ff6b35,#1a0a2e);}
+.theme-dot[data-t="ocean"]{background:linear-gradient(135deg,#00cfff,#001a33);}.theme-dot[data-t="aurora"]{background:linear-gradient(135deg,#5eff5e,#0a1628);}
+.theme-dot[data-t="light"]{background:#e8ecf4;}
+/* Stopwatch */
+.stopwatch-display{position:fixed;top:108px;left:12px;background:var(--ui-bg);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid var(--ui-border);border-radius:12px;padding:8px 14px;color:var(--ui-text);font-family:'Courier New',monospace;font-size:16px;z-index:1000;display:none;user-select:none;}
+.stopwatch-display.visible{display:block;}
+.stopwatch-display .sw-time{font-size:20px;font-weight:bold;}
+.stopwatch-display .sw-btns{display:flex;gap:6px;margin-top:6px;}
+.stopwatch-display .sw-btns button{flex:1;padding:4px;border:1px solid var(--ui-border);background:var(--ui-bg);color:var(--ui-text);border-radius:6px;cursor:pointer;font-size:11px;}
+/* Dashboard HUD */
+.dashboard{position:fixed;bottom:40px;left:12px;background:var(--ui-bg);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid var(--ui-border);border-radius:12px;padding:10px 14px;color:var(--ui-text);font-family:'Courier New',monospace;font-size:11px;z-index:1000;line-height:1.6;display:none;user-select:none;max-width:180px;}
+.dashboard.visible{display:block;}
+.dashboard .hud-title{font-size:9px;text-transform:uppercase;letter-spacing:1px;opacity:0.6;margin-bottom:4px;}
+/* Camera flash for screenshot */
+.camera-flash{position:fixed;top:0;left:0;width:100vw;height:100vh;background:#fff;z-index:9999;pointer-events:none;opacity:0;transition:opacity 0.1s;}
+/* Mobile responsive */
 @media(max-width:480px){
-  :root{
-    --clock-size:280px;
-    --center:140;
-    --rHour:106;
-    --rMinute:80;
-    --rSecond:56;
-    --scale:0.667;
-  }
-  .hourOrbit{width:213px;height:213px;}
-  .minuteOrbit{width:160px;height:160px;}
-  .secondOrbit{width:113px;height:113px;}
+  :root{--clock-size:280px;--center:140;--rHour:106;--rMinute:80;--rSecond:56;--scale:0.667;}
+  .hourOrbit{width:213px;height:213px;}.minuteOrbit{width:160px;height:160px;}.secondOrbit{width:113px;height:113px;}
   .sun{width:24px;height:24px;box-shadow:0 0 20px gold,0 0 50px orange;}
-  .hourPlanet{width:12px;height:12px;}
-  .minutePlanet{width:10px;height:10px;}
-  .secondPlanet{width:20px;height:16px;}
-  .secondPlanet svg{width:20px;height:16px;}
-  .label{font-size:9px;}
-  .digitalTime{font-size:18px;padding:6px 0;bottom:10px;}
-  footer{font-size:11px;padding:6px 0;}
-  .astronaut svg{width:32px;height:42px;}
-  .iss-wrapper svg{width:90px;height:32px;}
+  .hourPlanet{width:12px;height:12px;}.minutePlanet{width:10px;height:10px;}.secondPlanet{width:20px;height:16px;}
+  .secondPlanet svg{width:20px;height:16px;}.label{font-size:9px;}
+  .digitalTime{font-size:18px;padding:6px 0;bottom:10px;}footer{font-size:11px;padding:6px 0;}
+  .astronaut svg{width:32px;height:42px;}.iss-wrapper svg{width:90px;height:32px;}
   .blackhole{transform:translate(-50%,-50%) scale(0.7);}
-  .bh-core{width:24px;height:24px;}
-  .bh-disk{width:50px;height:50px;}
-  .bh-disk2{width:40px;height:40px;}
-  .bh-glow{width:60px;height:60px;}
+  .bh-core{width:24px;height:24px;}.bh-disk{width:50px;height:50px;}.bh-disk2{width:40px;height:40px;}.bh-glow{width:60px;height:60px;}
+  .ui-btn{width:34px;height:34px;font-size:15px;}
+  #btnSettings{right:52px;}#btnScreenshot{right:92px;}#btnShare{right:132px;}
+  .settings-panel{width:260px;right:-280px;}
+  .earth-system{width:40px;height:40px;bottom:50px;right:15px;}
+  .earth-sphere{width:35px;height:35px;}.moon-orbit{width:55px;height:55px;}.moon{width:7px;height:7px;}
+  .dashboard{font-size:9px;padding:6px 10px;max-width:150px;}
 }
 @media(min-width:481px) and (max-width:768px){
-  :root{
-    --clock-size:340px;
-    --center:170;
-    --rHour:130;
-    --rMinute:97;
-    --rSecond:69;
-    --scale:0.81;
-  }
-  .hourOrbit{width:260px;height:260px;}
-  .minuteOrbit{width:195px;height:195px;}
-  .secondOrbit{width:138px;height:138px;}
-  .sun{width:28px;height:28px;}
-  .hourPlanet{width:14px;height:14px;}
-  .minutePlanet{width:11px;height:11px;}
-  .secondPlanet{width:22px;height:18px;}
-  .secondPlanet svg{width:22px;height:18px;}
-  .label{font-size:10px;}
-  .digitalTime{font-size:20px;padding:8px 0;}
-  footer{font-size:12px;}
-  .astronaut svg{width:40px;height:52px;}
-  .iss-wrapper svg{width:110px;height:40px;}
+  :root{--clock-size:340px;--center:170;--rHour:130;--rMinute:97;--rSecond:69;--scale:0.81;}
+  .hourOrbit{width:260px;height:260px;}.minuteOrbit{width:195px;height:195px;}.secondOrbit{width:138px;height:138px;}
+  .sun{width:28px;height:28px;}.hourPlanet{width:14px;height:14px;}.minutePlanet{width:11px;height:11px;}.secondPlanet{width:22px;height:18px;}
+  .secondPlanet svg{width:22px;height:18px;}.label{font-size:10px;}
+  .digitalTime{font-size:20px;padding:8px 0;}footer{font-size:12px;}.astronaut svg{width:40px;height:52px;}.iss-wrapper svg{width:110px;height:40px;}
 }
-
-/* Touch-friendly: prevent text selection, context menus on mobile */
-.clock,.astronaut,.iss-wrapper,.rocket,.blackhole,.sat{
-  -webkit-touch-callout:none;
-  -webkit-user-select:none;
-  user-select:none;
-}
-
-/* GPU acceleration for smoother animations on mobile */
-.planet,.rocket,.astronaut,.iss-wrapper,.blackhole,.sat,.meteor,.star,.asteroid{
-  will-change:transform,left,top;
-  -webkit-transform:translateZ(0);
-  transform:translateZ(0);
-}
-
-/* ── Asteroids ── */
-.asteroid{
-  position:absolute;
-  pointer-events:none;
-  z-index:7;
-}
-.asteroid svg{
-  filter:drop-shadow(0 0 4px rgba(200,150,80,0.5));
-}
-
-/* ── Asteroid explosion on rocket hit ── */
-.asteroid-explosion{
-  position:absolute;
-  pointer-events:none;
-  z-index:52;
-  transform:translate(-50%,-50%);
-}
-.asteroid-chunk{
-  position:absolute;
-  border-radius:30%;
-  pointer-events:none;
-  z-index:52;
-}
-
+.clock,.astronaut,.iss-wrapper,.rocket,.blackhole,.sat{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none;}
+.planet,.rocket,.astronaut,.iss-wrapper,.blackhole,.sat,.meteor,.star,.asteroid{will-change:transform,left,top;-webkit-transform:translateZ(0);transform:translateZ(0);}
 </style>
+</head>
 <body>
+<!-- UI Buttons -->
+<button class="ui-btn" id="btnSound" title="Toggle Sound">🔇</button>
+<button class="ui-btn" id="btnStopwatch" title="Stopwatch">⏱️</button>
+<button class="ui-btn" id="btnShare" title="Share">📤</button>
+<button class="ui-btn" id="btnScreenshot" title="Screenshot">📸</button>
+<button class="ui-btn" id="btnSettings" title="Settings">⚙️</button>
+<button class="ui-btn" id="btnTheme" title="Toggle Theme">🌙</button>
+
+<!-- Settings Panel -->
+<div class="settings-panel" id="settingsPanel">
+  <button class="close-btn" id="closeSettings">✕</button>
+  <h3>⚙️ Settings</h3>
+  <div class="theme-dots">
+    <div class="theme-dot active" data-t="dark" title="Dark"></div>
+    <div class="theme-dot" data-t="sunset" title="Sunset"></div>
+    <div class="theme-dot" data-t="ocean" title="Ocean"></div>
+    <div class="theme-dot" data-t="aurora" title="Aurora"></div>
+    <div class="theme-dot" data-t="light" title="Light"></div>
+  </div>
+  <div class="setting-row"><label>Nebula Clouds</label><div class="toggle-switch on" data-f="nebula"></div></div>
+  <div class="setting-row"><label>Constellations</label><div class="toggle-switch on" data-f="constellations"></div></div>
+  <div class="setting-row"><label>Orbit Trails</label><div class="toggle-switch on" data-f="orbitTrails"></div></div>
+  <div class="setting-row"><label>UFO</label><div class="toggle-switch on" data-f="ufo"></div></div>
+  <div class="setting-row"><label>Comet</label><div class="toggle-switch on" data-f="comet"></div></div>
+  <div class="setting-row"><label>Earth & Moon</label><div class="toggle-switch on" data-f="earth"></div></div>
+  <div class="setting-row"><label>Wormhole</label><div class="toggle-switch on" data-f="wormhole"></div></div>
+  <div class="setting-row"><label>Fireworks (on hour)</label><div class="toggle-switch on" data-f="fireworks"></div></div>
+  <div class="setting-row"><label>Parallax Stars</label><div class="toggle-switch on" data-f="parallax"></div></div>
+  <div class="setting-row"><label>Dashboard HUD</label><div class="toggle-switch on" data-f="dashboard"></div></div>
+  <div class="setting-row"><label>Sound Effects</label><div class="toggle-switch" data-f="sound"></div></div>
+  <div class="setting-row"><label>Click to Launch</label><div class="toggle-switch on" data-f="clickLaunch"></div></div>
+</div>
+
+<!-- Stopwatch -->
+<div class="stopwatch-display" id="stopwatchDisplay">
+  <div class="sw-time" id="swTime">00:00.00</div>
+  <div class="sw-btns">
+    <button id="swStart">Start</button>
+    <button id="swReset">Reset</button>
+  </div>
+</div>
+
+<!-- Dashboard HUD -->
+<div class="dashboard" id="dashboard">
+  <div class="hud-title">SPACE DASHBOARD</div>
+  <div id="hudContent">
+    🚀 Rockets: 6<br>
+    ☄️ Asteroids: 0<br>
+    💥 Collisions: 0<br>
+    🕳️ BH Phase: Approach<br>
+    📊 FPS: 60
+  </div>
+</div>
 
 <div id="scene">
-<!-- Stars generated in main script below -->
+<!-- Stars generated by JS -->
+<canvas class="constellation-canvas" id="constellationCanvas"></canvas>
+<canvas class="orbit-trail-canvas" id="orbitTrailCanvas"></canvas>
 
 <!-- Clock -->
-<div class="clock">
+<div class="clock" id="clockEl">
   <div class="sun"></div>
   <div class="orbit hourOrbit"></div>
   <div class="orbit minuteOrbit"></div>
   <div class="orbit secondOrbit"></div>
-
   <div class="planet hourPlanet" id="hour"><div class="label">Hour</div></div>
   <div class="planet minutePlanet" id="minute"><div class="label">Minute</div></div>
   <div class="planet secondPlanet" id="second">
     <svg width="26" height="20" viewBox="0 0 26 20" style="overflow:visible;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);">
-      <!-- ring back -->
       <ellipse cx="13" cy="11" rx="13" ry="4" fill="none" stroke="rgba(210,180,140,0.35)" stroke-width="1.5"/>
-      <!-- planet body -->
       <circle cx="13" cy="10" r="5.5" fill="#e8b84a"/>
       <ellipse cx="13" cy="8.5" rx="5" ry="2.5" fill="rgba(255,220,130,0.4)"/>
       <ellipse cx="13" cy="11.5" rx="5" ry="2" fill="rgba(180,120,40,0.3)"/>
-      <!-- band stripes -->
       <ellipse cx="13" cy="9" rx="5.3" ry="0.7" fill="rgba(200,160,60,0.35)"/>
       <ellipse cx="13" cy="11" rx="5.3" ry="0.6" fill="rgba(170,120,50,0.3)"/>
-      <!-- ring front -->
       <path d="M0 11 Q6 15 13 15 Q20 15 26 11" fill="none" stroke="#d2b48c" stroke-width="1.8" stroke-linecap="round"/>
       <path d="M1.5 11.5 Q7 14 13 14 Q19 14 24.5 11.5" fill="none" stroke="rgba(210,180,140,0.5)" stroke-width="1"/>
-      <!-- glow -->
       <circle cx="13" cy="10" r="7" fill="none" stroke="rgba(232,184,74,0.15)" stroke-width="2"/>
     </svg>
     <div class="label">Second</div>
   </div>
-
   <div class="digitalTime" id="digitalTime">00:00:00</div>
 </div>
 
-<!-- Footer -->
+<!-- Earth System -->
+<div class="earth-system" id="earthSystem">
+  <div class="earth-sphere">
+    <div class="earth-land" style="width:18px;height:12px;top:8px;left:5px;border-radius:40% 60% 50% 40%;"></div>
+    <div class="earth-land" style="width:14px;height:8px;top:22px;left:20px;border-radius:50% 40% 60% 30%;"></div>
+    <div class="earth-land" style="width:8px;height:10px;top:14px;left:30px;border-radius:30% 50% 40% 60%;"></div>
+  </div>
+  <div class="moon-orbit"><div class="moon"></div></div>
+</div>
+
 <footer>© Orbit Clock | Build By: Arunim's IT Caffe</footer>
 </div><!-- /scene -->
 
 <script>
-// ── Responsive sizing ──
-const isMobile = window.innerWidth <= 480;
-const isTablet = window.innerWidth > 480 && window.innerWidth <= 768;
-const scaleFactor = isMobile ? 0.667 : (isTablet ? 0.81 : 1);
+// ═══════════════════════════════════════════
+// FEATURE TOGGLES & GLOBAL STATE
+// ═══════════════════════════════════════════
+const features={nebula:true,constellations:true,orbitTrails:true,ufo:true,comet:true,earth:true,wormhole:true,fireworks:true,parallax:true,dashboard:true,sound:false,clickLaunch:true};
+let collisionCount=0, asteroidCount=0, bhPhase='Approach', fpsVal=60;
+let lastFrameTime=performance.now(), frameCount=0;
 
-// ── Prevent pinch-zoom and double-tap zoom on mobile ──
-document.addEventListener('gesturestart', function(e){ e.preventDefault(); }, {passive:false});
-document.addEventListener('gesturechange', function(e){ e.preventDefault(); }, {passive:false});
-document.addEventListener('gestureend', function(e){ e.preventDefault(); }, {passive:false});
-document.addEventListener('touchmove', function(e){
-  if(e.touches.length>1) e.preventDefault();
-}, {passive:false});
+// Responsive
+const isMobile=window.innerWidth<=480;
+const isTablet=window.innerWidth>480&&window.innerWidth<=768;
+const scaleFactor=isMobile?0.667:(isTablet?0.81:1);
+const STAR_COUNT=isMobile?50:(isTablet?80:120);
+const METEOR_INTERVAL=isMobile?1500:(isTablet?1000:700);
+const SPARK_COUNT=isMobile?12:(isTablet?20:30);
+const DEBRIS_COUNT=isMobile?15:(isTablet?25:40);
+const SWIRL_COUNT=isMobile?4:8;
+const ASTRONAUT_COUNT=isMobile?3:4;
+const ASTEROID_INTERVAL=isMobile?800:(isTablet?600:400);
+
+// Prevent zoom
+document.addEventListener('gesturestart',e=>e.preventDefault(),{passive:false});
+document.addEventListener('gesturechange',e=>e.preventDefault(),{passive:false});
+document.addEventListener('gestureend',e=>e.preventDefault(),{passive:false});
+document.addEventListener('touchmove',e=>{if(e.touches.length>1)e.preventDefault();},{passive:false});
 let lastTouchEnd=0;
-document.addEventListener('touchend', function(e){
-  const now=Date.now();
-  if(now-lastTouchEnd<=300) e.preventDefault();
-  lastTouchEnd=now;
-}, {passive:false});
+document.addEventListener('touchend',e=>{const n=Date.now();if(n-lastTouchEnd<=300)e.preventDefault();lastTouchEnd=n;},{passive:false});
 
-// Scene wrapper for screen shake (never transform body on mobile)
 const sceneEl=document.getElementById('scene');
+const hourPlanet=document.getElementById('hour');
+const minutePlanet=document.getElementById('minute');
+const secondPlanet=document.getElementById('second');
+const digital=document.getElementById('digitalTime');
+const clockEl=document.getElementById('clockEl');
 
-// Orbit Clock
-const hourPlanet = document.getElementById("hour");
-const minutePlanet = document.getElementById("minute");
-const secondPlanet = document.getElementById("second");
-const digital = document.getElementById("digitalTime");
-
-const center = isMobile ? 140 : (isTablet ? 170 : 210);
-const rHour = isMobile ? 106 : (isTablet ? 130 : 160);
-const rMinute = isMobile ? 80 : (isTablet ? 97 : 120);
-const rSecond = isMobile ? 56 : (isTablet ? 69 : 85);
+const center=isMobile?140:(isTablet?170:210);
+const rHour=isMobile?106:(isTablet?130:160);
+const rMinute=isMobile?80:(isTablet?97:120);
+const rSecond=isMobile?56:(isTablet?69:85);
 let falling=false;
 
-// Reduce particle counts on mobile for performance
-const STAR_COUNT = isMobile ? 50 : (isTablet ? 80 : 120);
-const METEOR_INTERVAL = isMobile ? 1500 : (isTablet ? 1000 : 700);
-const SPARK_COUNT = isMobile ? 12 : (isTablet ? 20 : 30);
-const DEBRIS_COUNT = isMobile ? 15 : (isTablet ? 25 : 40);
-const SWIRL_COUNT = isMobile ? 4 : 8;
-const ASTRONAUT_COUNT = isMobile ? 3 : 4;
-const ASTEROID_INTERVAL = isMobile ? 800 : (isTablet ? 600 : 400);
+// ═══════════════════════════════════════════
+// WEB AUDIO API — Sound Effects
+// ═══════════════════════════════════════════
+let audioCtx=null;
+function initAudio(){if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();}
+function playTone(freq,dur,type,vol){
+  if(!features.sound||!audioCtx)return;
+  try{
+    const o=audioCtx.createOscillator(),g=audioCtx.createGain();
+    o.type=type||'sine';o.frequency.value=freq;
+    g.gain.setValueAtTime(vol||0.1,audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001,audioCtx.currentTime+dur);
+    o.connect(g);g.connect(audioCtx.destination);
+    o.start();o.stop(audioCtx.currentTime+dur);
+  }catch(e){}
+}
+function playExplosion(){playTone(80,0.5,'sawtooth',0.15);playTone(40,0.8,'square',0.1);}
+function playLaunch(){playTone(200,0.3,'triangle',0.08);setTimeout(()=>playTone(400,0.2,'sine',0.06),100);}
+function playFirework(){playTone(600,0.15,'sine',0.05);setTimeout(()=>playTone(800,0.2,'triangle',0.04),80);}
 
-// Generate stars (responsive count)
+// ═══════════════════════════════════════════
+// PARALLAX STAR LAYERS
+// ═══════════════════════════════════════════
+const starEls=[];
 for(let i=0;i<STAR_COUNT;i++){
-  const star=document.createElement("div");
-  star.className="star";
-  star.style.left=Math.random()*window.innerWidth+"px";
-  star.style.top=Math.random()*window.innerHeight+"px";
-  star.style.width=1+Math.random()*2+"px";
+  const star=document.createElement('div');
+  const layer=i%3;
+  star.className='star star-layer-'+(layer+1);
+  star.style.left=Math.random()*window.innerWidth+'px';
+  star.style.top=Math.random()*window.innerHeight+'px';
+  star.style.width=(1+Math.random()*2)+'px';
   star.style.height=star.style.width;
-  star.style.animationDuration=(1+Math.random()*3)+"s";
-  document.body.appendChild(star);
+  star.style.animationDuration=(1+Math.random()*3)+'s';
+  star.dataset.layer=layer;
+  star.dataset.ox=star.style.left;
+  star.dataset.oy=star.style.top;
+  sceneEl.appendChild(star);
+  starEls.push(star);
+}
+let parallaxX=0,parallaxY=0;
+document.addEventListener('mousemove',e=>{
+  if(!features.parallax)return;
+  parallaxX=(e.clientX/window.innerWidth-0.5)*2;
+  parallaxY=(e.clientY/window.innerHeight-0.5)*2;
+});
+if(window.DeviceOrientationEvent){
+  window.addEventListener('deviceorientation',e=>{
+    if(!features.parallax||e.gamma===null)return;
+    parallaxX=(e.gamma||0)/45;parallaxY=(e.beta||0)/45;
+  },{passive:true});
+}
+function updateParallax(){
+  if(!features.parallax)return;
+  starEls.forEach(s=>{
+    const l=parseInt(s.dataset.layer);
+    const m=(l+1)*3;
+    const ox=parseFloat(s.dataset.ox),oy=parseFloat(s.dataset.oy);
+    s.style.left=(ox+parallaxX*m)+'px';
+    s.style.top=(oy+parallaxY*m)+'px';
+  });
 }
 
+// ═══════════════════════════════════════════
+// NEBULA CLOUDS
+// ═══════════════════════════════════════════
+const nebulaEls=[];
+function createNebulae(){
+  const colors=[['rgba(100,50,200,0.25)','rgba(50,20,150,0.15)'],['rgba(200,50,100,0.2)','rgba(150,30,80,0.12)'],['rgba(50,100,200,0.2)','rgba(30,60,150,0.12)']];
+  const count=isMobile?2:3;
+  for(let i=0;i<count;i++){
+    const n=document.createElement('div');
+    n.className='nebula';
+    const size=150+Math.random()*200;
+    n.style.width=size+'px';n.style.height=size*(0.6+Math.random()*0.4)+'px';
+    n.style.left=Math.random()*window.innerWidth+'px';
+    n.style.top=Math.random()*window.innerHeight+'px';
+    const c=colors[i%colors.length];
+    n.style.background='radial-gradient(ellipse,'+c[0]+','+c[1]+',transparent 70%)';
+    n.style.animationDelay=(i*5)+'s';
+    sceneEl.insertBefore(n,sceneEl.firstChild);
+    nebulaEls.push(n);
+  }
+}
+createNebulae();
+
+// ═══════════════════════════════════════════
+// CONSTELLATION LINES
+// ═══════════════════════════════════════════
+const constCanvas=document.getElementById('constellationCanvas');
+const constCtx=constCanvas.getContext('2d');
+function resizeConstCanvas(){constCanvas.width=window.innerWidth;constCanvas.height=window.innerHeight;}
+resizeConstCanvas();
+window.addEventListener('resize',resizeConstCanvas);
+
+const constellations=[
+  {name:'Orion',stars:[[0.15,0.2],[0.18,0.22],[0.16,0.26],[0.14,0.30],[0.17,0.34],[0.13,0.34],[0.19,0.34],[0.15,0.38],[0.19,0.38]],lines:[[0,1],[1,2],[2,3],[3,4],[3,5],[3,6],[4,7],[6,8]]},
+  {name:'BigDipper',stars:[[0.7,0.12],[0.73,0.14],[0.76,0.13],[0.79,0.15],[0.81,0.18],[0.84,0.17],[0.86,0.19]],lines:[[0,1],[1,2],[2,3],[3,4],[4,5],[5,6]]},
+  {name:'Cassiopeia',stars:[[0.45,0.08],[0.48,0.05],[0.51,0.09],[0.54,0.04],[0.57,0.07]],lines:[[0,1],[1,2],[2,3],[3,4]]}
+];
+
+function drawConstellations(){
+  if(!features.constellations){constCtx.clearRect(0,0,constCanvas.width,constCanvas.height);return;}
+  constCtx.clearRect(0,0,constCanvas.width,constCanvas.height);
+  const W=constCanvas.width,H=constCanvas.height;
+  constellations.forEach(c=>{
+    constCtx.strokeStyle='rgba(150,180,255,0.3)';constCtx.lineWidth=0.8;
+    c.lines.forEach(([a,b])=>{
+      constCtx.beginPath();
+      constCtx.moveTo(c.stars[a][0]*W,c.stars[a][1]*H);
+      constCtx.lineTo(c.stars[b][0]*W,c.stars[b][1]*H);
+      constCtx.stroke();
+    });
+    c.stars.forEach(([sx,sy])=>{
+      constCtx.fillStyle='rgba(200,220,255,0.7)';
+      constCtx.beginPath();constCtx.arc(sx*W,sy*H,1.5,0,Math.PI*2);constCtx.fill();
+    });
+  });
+}
+drawConstellations();
+
+// ═══════════════════════════════════════════
+// ORBIT TRAILS (Canvas)
+// ═══════════════════════════════════════════
+const trailCanvas=document.getElementById('orbitTrailCanvas');
+const trailCtx=trailCanvas.getContext('2d');
+function resizeTrailCanvas(){trailCanvas.width=window.innerWidth;trailCanvas.height=window.innerHeight;}
+resizeTrailCanvas();
+window.addEventListener('resize',resizeTrailCanvas);
+const trailHistory={hour:[],minute:[],second:[]};
+const TRAIL_MAX=80;
+
+function addTrailPoint(name,x,y){
+  if(!features.orbitTrails)return;
+  const h=trailHistory[name];
+  h.push({x,y});
+  if(h.length>TRAIL_MAX)h.shift();
+}
+
+function drawTrails(){
+  trailCtx.clearRect(0,0,trailCanvas.width,trailCanvas.height);
+  if(!features.orbitTrails)return;
+  const clockRect=clockEl.getBoundingClientRect();
+  const colors={hour:'rgba(96,165,250,','minute:'rgba(52,211,153,','second:'rgba(232,184,74,'};
+  Object.keys(trailHistory).forEach(name=>{
+    const pts=trailHistory[name];if(pts.length<2)return;
+    for(let i=1;i<pts.length;i++){
+      const alpha=(i/pts.length)*0.5;
+      trailCtx.strokeStyle=colors[name]+alpha+')';
+      trailCtx.lineWidth=name==='hour'?2:1.5;
+      trailCtx.beginPath();
+      trailCtx.moveTo(clockRect.left+pts[i-1].x,clockRect.top+pts[i-1].y);
+      trailCtx.lineTo(clockRect.left+pts[i].x,clockRect.top+pts[i].y);
+      trailCtx.stroke();
+    }
+  });
+}
+
+// ═══════════════════════════════════════════
+// CLOCK UPDATE
+// ═══════════════════════════════════════════
 function updateClock(){
   const now=new Date();
   const s=now.getSeconds()+now.getMilliseconds()/1000;
   const m=now.getMinutes()+s/60;
   const h=now.getHours()%12+m/60;
-
   const angleS=s*6*Math.PI/180;
   const angleM=m*6*Math.PI/180;
   const angleH=h*30*Math.PI/180;
-
   if(!falling){
-    secondPlanet.style.left=center+rSecond*Math.sin(angleS)+"px";
-    secondPlanet.style.top=center-rSecond*Math.cos(angleS)+"px";
-
-    minutePlanet.style.left=center+rMinute*Math.sin(angleM)+"px";
-    minutePlanet.style.top=center-rMinute*Math.cos(angleM)+"px";
-
-    hourPlanet.style.left=center+rHour*Math.sin(angleH)+"px";
-    hourPlanet.style.top=center-rHour*Math.cos(angleH)+"px";
+    const sx=center+rSecond*Math.sin(angleS),sy=center-rSecond*Math.cos(angleS);
+    const mx=center+rMinute*Math.sin(angleM),my=center-rMinute*Math.cos(angleM);
+    const hx=center+rHour*Math.sin(angleH),hy=center-rHour*Math.cos(angleH);
+    secondPlanet.style.left=sx+'px';secondPlanet.style.top=sy+'px';
+    minutePlanet.style.left=mx+'px';minutePlanet.style.top=my+'px';
+    hourPlanet.style.left=hx+'px';hourPlanet.style.top=hy+'px';
+    addTrailPoint('second',sx,sy);addTrailPoint('minute',mx,my);addTrailPoint('hour',hx,hy);
   }
-
   const hh=now.getHours().toString().padStart(2,'0');
   const mm=now.getMinutes().toString().padStart(2,'0');
   const ss=now.getSeconds().toString().padStart(2,'0');
-  digital.textContent=`${hh}:${mm}:${ss}`;
-
+  digital.textContent=hh+':'+mm+':'+ss;
+  // FPS counter
+  frameCount++;
+  const elapsed=performance.now()-lastFrameTime;
+  if(elapsed>=1000){fpsVal=Math.round(frameCount*1000/elapsed);frameCount=0;lastFrameTime=performance.now();}
+  updateParallax();
+  drawTrails();
   requestAnimationFrame(updateClock);
 }
 updateClock();
 
 // Meteors
 function createMeteor(){
-  const meteor=document.createElement("div");
-  meteor.className="meteor";
-  meteor.style.left=Math.random()*window.innerWidth+"px";
-  meteor.style.top=Math.random()*window.innerHeight/2+"px";
-  document.body.appendChild(meteor);
-
+  const meteor=document.createElement('div');
+  meteor.className='meteor';
+  meteor.style.left=Math.random()*window.innerWidth+'px';
+  meteor.style.top=Math.random()*window.innerHeight/2+'px';
+  sceneEl.appendChild(meteor);
   meteor.style.opacity=1;
-  let distance=0;
-  const maxDistance=300+Math.random()*200;
+  let distance=0;const maxDistance=300+Math.random()*200;
   const angle=Math.random()*Math.PI/4+Math.PI/6;
-
   function animate(){
     distance+=6;
-    const dx=Math.cos(angle)*distance;
-    const dy=Math.sin(angle)*distance;
-    meteor.style.transform=`translate(${dx}px,${dy}px)`;
+    meteor.style.transform='translate('+Math.cos(angle)*distance+'px,'+Math.sin(angle)*distance+'px)';
     meteor.style.opacity=1-distance/maxDistance;
-    if(distance<maxDistance) requestAnimationFrame(animate);
-    else meteor.remove();
+    if(distance<maxDistance)requestAnimationFrame(animate);else meteor.remove();
   }
   animate();
 }
@@ -733,167 +512,112 @@ setInterval(createMeteor,METEOR_INTERVAL);
 function gravityFall(){
   falling=true;
   const planets=[hourPlanet,minutePlanet,secondPlanet];
-  let step=0;
-  const steps=40;
+  let step=0;const steps=40;
   const interval=setInterval(()=>{
-    step++;
-    const t=step/steps;
+    step++;const t=step/steps;
     planets.forEach(p=>{
-      p.style.left=center+(parseFloat(p.style.left||center)-center)*(1-t)+"px";
-      p.style.top=center+(parseFloat(p.style.top||center)-center)*(1-t)+"px";
+      p.style.left=center+(parseFloat(p.style.left||center)-center)*(1-t)+'px';
+      p.style.top=center+(parseFloat(p.style.top||center)-center)*(1-t)+'px';
     });
-    if(step>=steps){clearInterval(interval); falling=false;}
+    if(step>=steps){clearInterval(interval);falling=false;}
   },20);
 }
-
 let lastHour=new Date().getHours();
 setInterval(()=>{
   const now=new Date();
-  if(now.getHours()!==lastHour){gravityFall(); lastHour=now.getHours();}
+  if(now.getHours()!==lastHour){
+    gravityFall();lastHour=now.getHours();
+    if(features.fireworks)launchFireworks();
+  }
 },1000);
 
 // ═══════════════════════════════════════════
-// ROCKETS — horizontal (L→R) & vertical (T↔B)
-// with dramatic collision detection
+// ROCKETS
 // ═══════════════════════════════════════════
-// Track active rockets for collision detection
-const activeRockets={h:null, v:null, h2:null, v2:null, d1:null, d2:null};
-
+const activeRockets={h:null,v:null,h2:null,v2:null,d1:null,d2:null};
 function buildRocketDOM(){
-  const rocket=document.createElement("div");
-  rocket.className="rocket";
-  const nose=document.createElement("div"); nose.className="nose";
-  const body=document.createElement("div"); body.className="body";
-  const flame=document.createElement("div"); flame.className="flame";
-  const finL=document.createElement("div"); finL.className="fin-left";
-  const finR=document.createElement("div"); finR.className="fin-right";
-  body.appendChild(finL); body.appendChild(finR);
-  rocket.appendChild(nose); rocket.appendChild(body); rocket.appendChild(flame);
+  const rocket=document.createElement('div');rocket.className='rocket';
+  const nose=document.createElement('div');nose.className='nose';
+  const body=document.createElement('div');body.className='body';
+  const flame=document.createElement('div');flame.className='flame';
+  const finL=document.createElement('div');finL.className='fin-left';
+  const finR=document.createElement('div');finR.className='fin-right';
+  body.appendChild(finL);body.appendChild(finR);
+  rocket.appendChild(nose);rocket.appendChild(body);rocket.appendChild(flame);
   return rocket;
 }
 
-// ── Dramatic Collision Explosion ──
 function triggerRocketCollision(cx,cy){
-  // 1) Glowing core that expands and fades
-  const coll=document.createElement('div');
-  coll.className='rocket-collision';
-  coll.style.left=cx+'px'; coll.style.top=cy+'px';
-  coll.style.width='80px'; coll.style.height='80px';
+  collisionCount++;
+  playExplosion();
+  const coll=document.createElement('div');coll.className='rocket-collision';
+  coll.style.left=cx+'px';coll.style.top=cy+'px';coll.style.width='80px';coll.style.height='80px';
   coll.innerHTML='<div class="collision-core"></div>';
   document.body.appendChild(coll);
   const core=coll.querySelector('.collision-core');
   const cStart=performance.now();
-  (function animCore(now){
-    const t=Math.min((now-cStart)/800,1);
-    const s=1+t*3;
-    core.style.transform='translate(-50%,-50%) scale('+s+')';
-    core.style.opacity=String(1-t);
-    if(t<1) requestAnimationFrame(animCore);
-    else coll.remove();
+  (function animCore(now){const t=Math.min((now-cStart)/800,1);const s=1+t*3;
+    core.style.transform='translate(-50%,-50%) scale('+s+')';core.style.opacity=String(1-t);
+    if(t<1)requestAnimationFrame(animCore);else coll.remove();
   })(performance.now());
-
-  // 2) Multiple expanding shockwave rings
   for(let w=0;w<3;w++){
     setTimeout(()=>{
-      const ring=document.createElement('div');
-      ring.className='collision-ring';
-      ring.style.position='absolute';
-      ring.style.left=cx+'px'; ring.style.top=cy+'px';
-      ring.style.width='10px'; ring.style.height='10px';
-      ring.style.zIndex='52';
+      const ring=document.createElement('div');ring.className='collision-ring';
+      ring.style.position='absolute';ring.style.left=cx+'px';ring.style.top=cy+'px';
+      ring.style.width='10px';ring.style.height='10px';ring.style.zIndex='52';
       document.body.appendChild(ring);
       const rStart=performance.now();
-      (function animRing(now){
-        const t=Math.min((now-rStart)/600,1);
-        const size=10+t*200;
-        ring.style.width=size+'px'; ring.style.height=size+'px';
-        ring.style.opacity=String(1-t);
-        ring.style.borderWidth=Math.max(1,3*(1-t))+'px';
-        ring.style.transform='translate(-50%,-50%)';
-        if(t<1) requestAnimationFrame(animRing);
-        else ring.remove();
+      (function animRing(now){const t=Math.min((now-rStart)/600,1);const size=10+t*200;
+        ring.style.width=size+'px';ring.style.height=size+'px';ring.style.opacity=String(1-t);
+        ring.style.borderWidth=Math.max(1,3*(1-t))+'px';ring.style.transform='translate(-50%,-50%)';
+        if(t<1)requestAnimationFrame(animRing);else ring.remove();
       })(performance.now());
-    }, w*100);
+    },w*100);
   }
-
-  // 3) Flying sparks / debris in all directions
   const sparkColors=['#fff','#ff6','#f80','#f44','#fa0','#ff0','#f4f','#4ef'];
   for(let i=0;i<SPARK_COUNT;i++){
-    const sp=document.createElement('div');
-    sp.className='collision-spark';
-    const size=2+Math.random()*5;
-    sp.style.width=size+'px'; sp.style.height=size+'px';
+    const sp=document.createElement('div');sp.className='collision-spark';
+    const size=2+Math.random()*5;sp.style.width=size+'px';sp.style.height=size+'px';
     const col=sparkColors[Math.floor(Math.random()*sparkColors.length)];
-    sp.style.background=col;
-    sp.style.boxShadow='0 0 '+(size*3)+'px '+col;
-    sp.style.left=cx+'px'; sp.style.top=cy+'px';
-    document.body.appendChild(sp);
-    const angle=Math.random()*Math.PI*2;
-    const speed=80+Math.random()*250;
-    const dur=500+Math.random()*700;
+    sp.style.background=col;sp.style.boxShadow='0 0 '+(size*3)+'px '+col;
+    sp.style.left=cx+'px';sp.style.top=cy+'px';document.body.appendChild(sp);
+    const angle=Math.random()*Math.PI*2;const speed=80+Math.random()*250;const dur=500+Math.random()*700;
     const sStart=performance.now();
-    (function animSpark(now){
-      const t=Math.min((now-sStart)/dur,1);
-      const ease=1-Math.pow(1-t,3);
-      const dist=speed*ease;
-      // Add slight gravity to sparks
-      const grav=t*t*60;
-      sp.style.left=(cx+Math.cos(angle)*dist)+'px';
-      sp.style.top=(cy+Math.sin(angle)*dist+grav)+'px';
+    (function animSpark(now){const t=Math.min((now-sStart)/dur,1);const ease=1-Math.pow(1-t,3);
+      const dist=speed*ease;const grav=t*t*60;
+      sp.style.left=(cx+Math.cos(angle)*dist)+'px';sp.style.top=(cy+Math.sin(angle)*dist+grav)+'px';
       sp.style.opacity=String(t<0.6?1:(1-(t-0.6)/0.4));
-      const sc=size*(1-t*0.6);
-      sp.style.width=sc+'px'; sp.style.height=sc+'px';
-      if(t<1) requestAnimationFrame(animSpark);
-      else sp.remove();
+      const sc=size*(1-t*0.6);sp.style.width=sc+'px';sp.style.height=sc+'px';
+      if(t<1)requestAnimationFrame(animSpark);else sp.remove();
     })(performance.now());
   }
-
-  // 4) Brief screen flash
   const flash=document.createElement('div');
   flash.style.cssText='position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(255,200,50,0.3);z-index:9998;pointer-events:none;';
   document.body.appendChild(flash);
   const fStart=performance.now();
-  (function animFlash(now){
-    const t=(now-fStart)/400;
-    flash.style.opacity=String(Math.max(0,1-t));
-    if(t<1) requestAnimationFrame(animFlash);
-    else flash.remove();
+  (function animFlash(now){const t=(now-fStart)/400;flash.style.opacity=String(Math.max(0,1-t));
+    if(t<1)requestAnimationFrame(animFlash);else flash.remove();
   })(performance.now());
-
-  // 5) Screen shake (on scene wrapper, safe for mobile)
   const shakeStart=performance.now();
-  (function shake(now){
-    const t=(now-shakeStart)/400;
-    if(t<1){
-      const i=5*(1-t);
-      sceneEl.style.transform='translate('+(Math.random()-0.5)*i+'px,'+(Math.random()-0.5)*i+'px)';
-      requestAnimationFrame(shake);
-    } else {
-      sceneEl.style.transform='';
-    }
+  (function shake(now){const t=(now-shakeStart)/400;
+    if(t<1){const i=5*(1-t);sceneEl.style.transform='translate('+(Math.random()-0.5)*i+'px,'+(Math.random()-0.5)*i+'px)';requestAnimationFrame(shake);}
+    else sceneEl.style.transform='';
   })(performance.now());
 }
 
-// Check collision between any pair of rockets
 function checkRocketCollision(){
   const allKeys=['h','h2','v','v2','d1','d2'];
-  const respawnMap={
-    h:createHorizontalRocket, h2:createHorizontalRocket2,
-    v:createVerticalRocket, v2:createVerticalRocket2,
-    d1:createDiagonalRocket1, d2:createDiagonalRocket2
-  };
+  const respawnMap={h:createHorizontalRocket,h2:createHorizontalRocket2,v:createVerticalRocket,v2:createVerticalRocket2,d1:createDiagonalRocket1,d2:createDiagonalRocket2};
   for(let i=0;i<allKeys.length;i++){
     for(let j=i+1;j<allKeys.length;j++){
-      const a=activeRockets[allKeys[i]], b=activeRockets[allKeys[j]];
-      if(!a||!b||!a.alive||!b.alive) continue;
-      const dist=Math.hypot(a.x-b.x, a.y-b.y);
+      const a=activeRockets[allKeys[i]],b=activeRockets[allKeys[j]];
+      if(!a||!b||!a.alive||!b.alive)continue;
+      const dist=Math.hypot(a.x-b.x,a.y-b.y);
       if(dist<35){
-        const cx=(a.x+b.x)/2, cy=(a.y+b.y)/2;
-        a.alive=false; b.alive=false;
-        a.el.remove(); b.el.remove();
+        const cx=(a.x+b.x)/2,cy=(a.y+b.y)/2;
+        a.alive=false;b.alive=false;a.el.remove();b.el.remove();
         triggerRocketCollision(cx,cy);
-        setTimeout(respawnMap[allKeys[i]],800);
-        setTimeout(respawnMap[allKeys[j]],1000);
+        setTimeout(respawnMap[allKeys[i]],800);setTimeout(respawnMap[allKeys[j]],1000);
         return true;
       }
     }
@@ -901,1059 +625,481 @@ function checkRocketCollision(){
   return false;
 }
 
-// ── Horizontal Rocket (left → right, crashes at random X) ──
 function createHorizontalRocket(){
-  const rocket=buildRocketDOM();
-  // Rotate 90° so nose points right
-  rocket.style.transform='rotate(90deg)';
-  document.body.appendChild(rocket);
-
-  const startY=Math.random()*(window.innerHeight-100)+50;
-  let x=-50;
-  const speed=3+Math.random()*2;
-  // Crash further across screen for more asteroid encounters
+  const rocket=buildRocketDOM();rocket.style.transform='rotate(90deg)';document.body.appendChild(rocket);
+  const startY=Math.random()*(window.innerHeight-100)+50;let x=-50;const speed=3+Math.random()*2;
   const crashX=window.innerWidth*0.6+Math.random()*window.innerWidth*0.5;
-  const info={el:rocket, x:x, y:startY, alive:true};
-  activeRockets.h=info;
-
-  function animate(){
-    if(!info.alive) return;
-    if(x<crashX && x<window.innerWidth+60){
-      x+=speed;
-      info.x=x; info.y=startY;
-      rocket.style.left=x+"px";
-      rocket.style.top=startY+"px";
-      if(!checkRocketCollision()) requestAnimationFrame(animate);
-    }else{
-      info.alive=false;
-      const explosion=document.createElement("div");
-      explosion.className="explosion";
-      explosion.style.left=Math.min(x,window.innerWidth-10)+"px";
-      explosion.style.top=startY+"px";
-      document.body.appendChild(explosion);
-      setTimeout(()=>explosion.remove(),500);
-      rocket.remove();
-      setTimeout(createHorizontalRocket,600);
-    }
-  }
-  animate();
+  const info={el:rocket,x:x,y:startY,alive:true};activeRockets.h=info;
+  function animate(){if(!info.alive)return;
+    if(x<crashX&&x<window.innerWidth+60){x+=speed;info.x=x;info.y=startY;rocket.style.left=x+'px';rocket.style.top=startY+'px';
+      if(!checkRocketCollision())requestAnimationFrame(animate);
+    }else{info.alive=false;const e=document.createElement('div');e.className='explosion';e.style.left=Math.min(x,window.innerWidth-10)+'px';e.style.top=startY+'px';document.body.appendChild(e);setTimeout(()=>e.remove(),500);rocket.remove();setTimeout(createHorizontalRocket,600);}
+  }animate();
 }
 
-// ── Vertical Rocket (top ↔ bottom) ──
 function createVerticalRocket(){
-  const rocket=buildRocketDOM();
-  document.body.appendChild(rocket);
-
-  const startX=Math.random()*(window.innerWidth-100)+50;
-  const goingDown=Math.random()>0.5;
-  let y=goingDown?-50:window.innerHeight+50;
-  const speed=3+Math.random()*2;
-  // Crash further for more asteroid encounters
-  const crashY=goingDown
-    ?(window.innerHeight*0.7+Math.random()*window.innerHeight*0.4)
-    :(Math.random()*window.innerHeight*0.3);
-  // Point nose in travel direction
+  const rocket=buildRocketDOM();document.body.appendChild(rocket);
+  const startX=Math.random()*(window.innerWidth-100)+50;const goingDown=Math.random()>0.5;
+  let y=goingDown?-50:window.innerHeight+50;const speed=3+Math.random()*2;
+  const crashY=goingDown?(window.innerHeight*0.7+Math.random()*window.innerHeight*0.4):(Math.random()*window.innerHeight*0.3);
   rocket.style.transform=goingDown?'rotate(180deg)':'rotate(0deg)';
-  const info={el:rocket, x:startX, y:y, alive:true};
-  activeRockets.v=info;
-
-  function animate(){
-    if(!info.alive) return;
-    const reachedCrash=goingDown?(y>crashY):(y<crashY);
-    const offScreen=goingDown?(y>window.innerHeight+60):(y<-60);
-    if(!reachedCrash && !offScreen){
-      y+=goingDown?speed:-speed;
-      info.x=startX; info.y=y;
-      rocket.style.left=startX+"px";
-      rocket.style.top=y+"px";
-      if(!checkRocketCollision()) requestAnimationFrame(animate);
-    }else{
-      info.alive=false;
-      const explosion=document.createElement("div");
-      explosion.className="explosion";
-      explosion.style.left=startX+"px";
-      explosion.style.top=Math.max(0,Math.min(y,window.innerHeight-10))+"px";
-      document.body.appendChild(explosion);
-      setTimeout(()=>explosion.remove(),500);
-      rocket.remove();
-      setTimeout(createVerticalRocket,600);
-    }
-  }
-  animate();
+  const info={el:rocket,x:startX,y:y,alive:true};activeRockets.v=info;
+  function animate(){if(!info.alive)return;
+    const reachedCrash=goingDown?(y>crashY):(y<crashY);const offScreen=goingDown?(y>window.innerHeight+60):(y<-60);
+    if(!reachedCrash&&!offScreen){y+=goingDown?speed:-speed;info.x=startX;info.y=y;rocket.style.left=startX+'px';rocket.style.top=y+'px';
+      if(!checkRocketCollision())requestAnimationFrame(animate);
+    }else{info.alive=false;const e=document.createElement('div');e.className='explosion';e.style.left=startX+'px';e.style.top=Math.max(0,Math.min(y,window.innerHeight-10))+'px';document.body.appendChild(e);setTimeout(()=>e.remove(),500);rocket.remove();setTimeout(createVerticalRocket,600);}
+  }animate();
 }
 
-// ── Second Horizontal Rocket (right → left) ──
 function createHorizontalRocket2(){
-  const rocket=buildRocketDOM();
-  rocket.style.transform='rotate(-90deg)';
-  document.body.appendChild(rocket);
-
-  const startY=Math.random()*(window.innerHeight-100)+50;
-  let x=window.innerWidth+50;
-  const speed=3+Math.random()*2;
+  const rocket=buildRocketDOM();rocket.style.transform='rotate(-90deg)';document.body.appendChild(rocket);
+  const startY=Math.random()*(window.innerHeight-100)+50;let x=window.innerWidth+50;const speed=3+Math.random()*2;
   const crashX=-(Math.random()*window.innerWidth*0.3);
-  const info={el:rocket, x:x, y:startY, alive:true};
-  activeRockets.h2=info;
-
-  function animate(){
-    if(!info.alive) return;
-    if(x>crashX && x>-60){
-      x-=speed;
-      info.x=x; info.y=startY;
-      rocket.style.left=x+"px";
-      rocket.style.top=startY+"px";
-      if(!checkRocketCollision()) requestAnimationFrame(animate);
-    }else{
-      info.alive=false;
-      const explosion=document.createElement("div");
-      explosion.className="explosion";
-      explosion.style.left=Math.max(0,x)+"px";
-      explosion.style.top=startY+"px";
-      document.body.appendChild(explosion);
-      setTimeout(()=>explosion.remove(),500);
-      rocket.remove();
-      setTimeout(createHorizontalRocket2,600);
-    }
-  }
-  animate();
+  const info={el:rocket,x:x,y:startY,alive:true};activeRockets.h2=info;
+  function animate(){if(!info.alive)return;
+    if(x>crashX&&x>-60){x-=speed;info.x=x;info.y=startY;rocket.style.left=x+'px';rocket.style.top=startY+'px';
+      if(!checkRocketCollision())requestAnimationFrame(animate);
+    }else{info.alive=false;const e=document.createElement('div');e.className='explosion';e.style.left=Math.max(0,x)+'px';e.style.top=startY+'px';document.body.appendChild(e);setTimeout(()=>e.remove(),500);rocket.remove();setTimeout(createHorizontalRocket2,600);}
+  }animate();
 }
 
-// ── Second Vertical Rocket (opposite direction) ──
 function createVerticalRocket2(){
-  const rocket=buildRocketDOM();
-  document.body.appendChild(rocket);
-
-  const startX=Math.random()*(window.innerWidth-100)+50;
-  const goingDown=Math.random()>0.5;
-  let y=goingDown?-50:window.innerHeight+50;
-  const speed=3+Math.random()*2;
-  const crashY=goingDown
-    ?(window.innerHeight*0.7+Math.random()*window.innerHeight*0.4)
-    :(Math.random()*window.innerHeight*0.3);
+  const rocket=buildRocketDOM();document.body.appendChild(rocket);
+  const startX=Math.random()*(window.innerWidth-100)+50;const goingDown=Math.random()>0.5;
+  let y=goingDown?-50:window.innerHeight+50;const speed=3+Math.random()*2;
+  const crashY=goingDown?(window.innerHeight*0.7+Math.random()*window.innerHeight*0.4):(Math.random()*window.innerHeight*0.3);
   rocket.style.transform=goingDown?'rotate(180deg)':'rotate(0deg)';
-  const info={el:rocket, x:startX, y:y, alive:true};
-  activeRockets.v2=info;
-
-  function animate(){
-    if(!info.alive) return;
-    const reachedCrash=goingDown?(y>crashY):(y<crashY);
-    const offScreen=goingDown?(y>window.innerHeight+60):(y<-60);
-    if(!reachedCrash && !offScreen){
-      y+=goingDown?speed:-speed;
-      info.x=startX; info.y=y;
-      rocket.style.left=startX+"px";
-      rocket.style.top=y+"px";
-      if(!checkRocketCollision()) requestAnimationFrame(animate);
-    }else{
-      info.alive=false;
-      const explosion=document.createElement("div");
-      explosion.className="explosion";
-      explosion.style.left=startX+"px";
-      explosion.style.top=Math.max(0,Math.min(y,window.innerHeight-10))+"px";
-      document.body.appendChild(explosion);
-      setTimeout(()=>explosion.remove(),500);
-      rocket.remove();
-      setTimeout(createVerticalRocket2,600);
-    }
-  }
-  animate();
+  const info={el:rocket,x:startX,y:y,alive:true};activeRockets.v2=info;
+  function animate(){if(!info.alive)return;
+    const reachedCrash=goingDown?(y>crashY):(y<crashY);const offScreen=goingDown?(y>window.innerHeight+60):(y<-60);
+    if(!reachedCrash&&!offScreen){y+=goingDown?speed:-speed;info.x=startX;info.y=y;rocket.style.left=startX+'px';rocket.style.top=y+'px';
+      if(!checkRocketCollision())requestAnimationFrame(animate);
+    }else{info.alive=false;const e=document.createElement('div');e.className='explosion';e.style.left=startX+'px';e.style.top=Math.max(0,Math.min(y,window.innerHeight-10))+'px';document.body.appendChild(e);setTimeout(()=>e.remove(),500);rocket.remove();setTimeout(createVerticalRocket2,600);}
+  }animate();
 }
 
-// ── Diagonal Rocket 1 (top-left → bottom-right) ──
 function createDiagonalRocket1(){
-  const rocket=buildRocketDOM();
-  rocket.style.transform='rotate(135deg)';
-  document.body.appendChild(rocket);
-
-  let x=-50;
-  let y=-50;
-  const speed=3+Math.random()*1.5;
-  const info={el:rocket, x:x, y:y, alive:true};
-  activeRockets.d1=info;
-
-  function animate(){
-    if(!info.alive) return;
-    x+=speed*0.707; y+=speed*0.707;
-    info.x=x; info.y=y;
-    rocket.style.left=x+'px';
-    rocket.style.top=y+'px';
-    if(x>window.innerWidth+60||y>window.innerHeight+60){
-      info.alive=false;
-      rocket.remove();
-      setTimeout(createDiagonalRocket1,800);
-      return;
-    }
-    if(!checkRocketCollision()) requestAnimationFrame(animate);
-  }
-  animate();
+  const rocket=buildRocketDOM();rocket.style.transform='rotate(135deg)';document.body.appendChild(rocket);
+  let x=-50,y=-50;const speed=3+Math.random()*1.5;
+  const info={el:rocket,x:x,y:y,alive:true};activeRockets.d1=info;
+  function animate(){if(!info.alive)return;x+=speed*0.707;y+=speed*0.707;info.x=x;info.y=y;
+    rocket.style.left=x+'px';rocket.style.top=y+'px';
+    if(x>window.innerWidth+60||y>window.innerHeight+60){info.alive=false;rocket.remove();setTimeout(createDiagonalRocket1,800);return;}
+    if(!checkRocketCollision())requestAnimationFrame(animate);
+  }animate();
 }
 
-// ── Diagonal Rocket 2 (top-right → bottom-left) ──
 function createDiagonalRocket2(){
-  const rocket=buildRocketDOM();
-  rocket.style.transform='rotate(-135deg)';
-  document.body.appendChild(rocket);
-
-  let x=window.innerWidth+50;
-  let y=-50;
-  const speed=3+Math.random()*1.5;
-  const info={el:rocket, x:x, y:y, alive:true};
-  activeRockets.d2=info;
-
-  function animate(){
-    if(!info.alive) return;
-    x-=speed*0.707; y+=speed*0.707;
-    info.x=x; info.y=y;
-    rocket.style.left=x+'px';
-    rocket.style.top=y+'px';
-    if(x<-60||y>window.innerHeight+60){
-      info.alive=false;
-      rocket.remove();
-      setTimeout(createDiagonalRocket2,800);
-      return;
-    }
-    if(!checkRocketCollision()) requestAnimationFrame(animate);
-  }
-  animate();
+  const rocket=buildRocketDOM();rocket.style.transform='rotate(-135deg)';document.body.appendChild(rocket);
+  let x=window.innerWidth+50,y=-50;const speed=3+Math.random()*1.5;
+  const info={el:rocket,x:x,y:y,alive:true};activeRockets.d2=info;
+  function animate(){if(!info.alive)return;x-=speed*0.707;y+=speed*0.707;info.x=x;info.y=y;
+    rocket.style.left=x+'px';rocket.style.top=y+'px';
+    if(x<-60||y>window.innerHeight+60){info.alive=false;rocket.remove();setTimeout(createDiagonalRocket2,800);return;}
+    if(!checkRocketCollision())requestAnimationFrame(animate);
+  }animate();
 }
 
-createHorizontalRocket();
-createVerticalRocket();
-setTimeout(createHorizontalRocket2,500);
-setTimeout(createVerticalRocket2,800);
-setTimeout(createDiagonalRocket1,1200);
-setTimeout(createDiagonalRocket2,1600);
+createHorizontalRocket();createVerticalRocket();
+setTimeout(createHorizontalRocket2,500);setTimeout(createVerticalRocket2,800);
+setTimeout(createDiagonalRocket1,1200);setTimeout(createDiagonalRocket2,1600);
 
 // ═══════════════════════════════════════════
-// FLOATING ASTRONAUT — drifts up & down
+// FLOATING ASTRONAUTS
 // ═══════════════════════════════════════════
 function createAstronaut(){
-  const a=document.createElement("div");
-  a.className="astronaut";
-  // Detailed astronaut SVG — helmet, visor, backpack, limbs
-  a.innerHTML=`<svg width="50" height="64" viewBox="0 0 50 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <!-- backpack -->
-    <rect x="10" y="22" width="8" height="18" rx="2" fill="#555"/>
-    <rect x="11" y="24" width="2" height="4" rx="1" fill="#888"/>
-    <rect x="14" y="24" width="2" height="4" rx="1" fill="#888"/>
-    <!-- body / suit -->
-    <rect x="17" y="22" width="16" height="20" rx="4" fill="#e8e8e8" stroke="#ccc" stroke-width="0.5"/>
-    <!-- chest detail -->
-    <rect x="20" y="25" width="10" height="3" rx="1" fill="#ddd"/>
-    <rect x="22" y="26" width="3" height="1.5" rx="0.5" fill="#f44"/>
-    <rect x="26" y="26" width="2" height="1.5" rx="0.5" fill="#4a4"/>
-    <!-- helmet -->
-    <ellipse cx="25" cy="17" rx="10" ry="11" fill="#e8e8e8" stroke="#ccc" stroke-width="0.5"/>
-    <!-- visor -->
-    <ellipse cx="25" cy="16" rx="7" ry="7" fill="#1a1a3e"/>
-    <ellipse cx="25" cy="15" rx="6.5" ry="6" fill="url(#visor)"/>
-    <!-- visor glare -->
-    <ellipse cx="22" cy="13" rx="2" ry="1.5" fill="rgba(255,255,255,0.25)" transform="rotate(-15 22 13)"/>
-    <!-- left arm -->
-    <rect x="6" y="26" width="12" height="4" rx="2" fill="#e8e8e8" stroke="#ccc" stroke-width="0.3"/>
-    <circle cx="6" cy="28" r="2.5" fill="#e0e0e0" stroke="#bbb" stroke-width="0.3"/>
-    <!-- right arm -->
-    <rect x="32" y="24" width="12" height="4" rx="2" fill="#e8e8e8" stroke="#ccc" stroke-width="0.3" transform="rotate(20 38 26)"/>
-    <circle cx="43" cy="22" r="2.5" fill="#e0e0e0" stroke="#bbb" stroke-width="0.3"/>
-    <!-- left leg -->
-    <rect x="18" y="41" width="5" height="14" rx="2" fill="#e8e8e8" stroke="#ccc" stroke-width="0.3" transform="rotate(8 20 41)"/>
-    <ellipse cx="20" cy="56" rx="3.5" ry="2" fill="#ddd" stroke="#bbb" stroke-width="0.3"/>
-    <!-- right leg -->
-    <rect x="27" y="41" width="5" height="14" rx="2" fill="#e8e8e8" stroke="#ccc" stroke-width="0.3" transform="rotate(-5 29 41)"/>
-    <ellipse cx="30" cy="56" rx="3.5" ry="2" fill="#ddd" stroke="#bbb" stroke-width="0.3"/>
-    <!-- tether line -->
-    <path d="M18 34 Q5 45 2 60" stroke="#aaa" stroke-width="0.7" fill="none" stroke-dasharray="2 2"/>
-    <defs>
-      <radialGradient id="visor" cx="40%" cy="35%">
-        <stop offset="0%" stop-color="#6ec6ff" stop-opacity="0.6"/>
-        <stop offset="60%" stop-color="#1a3a6e" stop-opacity="0.85"/>
-        <stop offset="100%" stop-color="#0a0a2e"/>
-      </radialGradient>
-    </defs>
-  </svg>`;
+  const a=document.createElement('div');a.className='astronaut';
+  a.innerHTML='<svg width="50" height="64" viewBox="0 0 50 64" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="10" y="22" width="8" height="18" rx="2" fill="#555"/><rect x="11" y="24" width="2" height="4" rx="1" fill="#888"/><rect x="14" y="24" width="2" height="4" rx="1" fill="#888"/><rect x="17" y="22" width="16" height="20" rx="4" fill="#e8e8e8" stroke="#ccc" stroke-width="0.5"/><rect x="20" y="25" width="10" height="3" rx="1" fill="#ddd"/><rect x="22" y="26" width="3" height="1.5" rx="0.5" fill="#f44"/><rect x="26" y="26" width="2" height="1.5" rx="0.5" fill="#4a4"/><ellipse cx="25" cy="17" rx="10" ry="11" fill="#e8e8e8" stroke="#ccc" stroke-width="0.5"/><ellipse cx="25" cy="16" rx="7" ry="7" fill="#1a1a3e"/><ellipse cx="25" cy="15" rx="6.5" ry="6" fill="url(#visor)"/><ellipse cx="22" cy="13" rx="2" ry="1.5" fill="rgba(255,255,255,0.25)" transform="rotate(-15 22 13)"/><rect x="6" y="26" width="12" height="4" rx="2" fill="#e8e8e8" stroke="#ccc" stroke-width="0.3"/><circle cx="6" cy="28" r="2.5" fill="#e0e0e0" stroke="#bbb" stroke-width="0.3"/><rect x="32" y="24" width="12" height="4" rx="2" fill="#e8e8e8" stroke="#ccc" stroke-width="0.3" transform="rotate(20 38 26)"/><circle cx="43" cy="22" r="2.5" fill="#e0e0e0" stroke="#bbb" stroke-width="0.3"/><rect x="18" y="41" width="5" height="14" rx="2" fill="#e8e8e8" stroke="#ccc" stroke-width="0.3" transform="rotate(8 20 41)"/><ellipse cx="20" cy="56" rx="3.5" ry="2" fill="#ddd" stroke="#bbb" stroke-width="0.3"/><rect x="27" y="41" width="5" height="14" rx="2" fill="#e8e8e8" stroke="#ccc" stroke-width="0.3" transform="rotate(-5 29 41)"/><ellipse cx="30" cy="56" rx="3.5" ry="2" fill="#ddd" stroke="#bbb" stroke-width="0.3"/><path d="M18 34 Q5 45 2 60" stroke="#aaa" stroke-width="0.7" fill="none" stroke-dasharray="2 2"/><defs><radialGradient id="visor" cx="40%" cy="35%"><stop offset="0%" stop-color="#6ec6ff" stop-opacity="0.6"/><stop offset="60%" stop-color="#1a3a6e" stop-opacity="0.85"/><stop offset="100%" stop-color="#0a0a2e"/></radialGradient></defs></svg>';
   document.body.appendChild(a);
-
-  // Random starting position
-  let x=Math.random()*(window.innerWidth-60)+30;
-  let y=Math.random()*(window.innerHeight-80)+40;
-  const speedX=(Math.random()-0.5)*0.3;
-  let baseY=y;
-  let bobPhase=Math.random()*Math.PI*2;
-  let rot=0;
+  let x=Math.random()*(window.innerWidth-60)+30,y=Math.random()*(window.innerHeight-80)+40;
+  const speedX=(Math.random()-0.5)*0.3;let baseY=y,bobPhase=Math.random()*Math.PI*2,rot=0;
   const rotSpeed=(Math.random()-0.5)*0.4;
-
-  function drift(){
-    bobPhase+=0.012;
-    rot+=rotSpeed;
-    y=baseY+Math.sin(bobPhase)*60;
-    x+=speedX;
-    // wrap around horizontally
-    if(x>window.innerWidth+60) x=-60;
-    if(x<-60) x=window.innerWidth+60;
-    a.style.left=x+"px";
-    a.style.top=y+"px";
-    a.style.transform=`rotate(${rot}deg)`;
+  function drift(){bobPhase+=0.012;rot+=rotSpeed;y=baseY+Math.sin(bobPhase)*60;x+=speedX;
+    if(x>window.innerWidth+60)x=-60;if(x<-60)x=window.innerWidth+60;
+    a.style.left=x+'px';a.style.top=y+'px';a.style.transform='rotate('+rot+'deg)';
     requestAnimationFrame(drift);
-  }
-  drift();
+  }drift();
 }
-// Spawn astronauts
-for(let ai=0;ai<ASTRONAUT_COUNT;ai++){
-  setTimeout(createAstronaut, ai*2000);
-}
+for(let ai=0;ai<ASTRONAUT_COUNT;ai++){setTimeout(createAstronaut,ai*2000);}
 
 // ═══════════════════════════════════════════
-// ISS SPACE STATION — moves left ↔ right
+// ISS SPACE STATION
 // ═══════════════════════════════════════════
 function createISS(){
-  const iss=document.createElement("div");
-  iss.className="iss-wrapper";
-  iss.innerHTML=`<svg width="140" height="50" viewBox="0 0 140 50" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <!-- main truss -->
-    <rect x="10" y="23" width="120" height="4" rx="1" fill="#b0b0b0" stroke="#888" stroke-width="0.5"/>
-    <!-- center module (Destiny/Unity) -->
-    <rect x="52" y="12" width="36" height="26" rx="4" fill="#ccc" stroke="#999" stroke-width="0.5"/>
-    <rect x="55" y="15" width="6" height="4" rx="1" fill="#7ab8e0"/>
-    <rect x="63" y="15" width="6" height="4" rx="1" fill="#7ab8e0"/>
-    <rect x="55" y="31" width="14" height="3" rx="1" fill="#aaa"/>
-    <!-- port module -->
-    <rect x="30" y="15" width="24" height="20" rx="3" fill="#d4d4d4" stroke="#aaa" stroke-width="0.5"/>
-    <circle cx="42" cy="25" r="4" fill="#1a1a3e" stroke="#666" stroke-width="0.5"/>
-    <circle cx="42" cy="25" r="2.5" fill="#2a4a7e"/>
-    <!-- starboard module -->
-    <rect x="86" y="15" width="24" height="20" rx="3" fill="#d4d4d4" stroke="#aaa" stroke-width="0.5"/>
-    <rect x="90" y="18" width="5" height="3" rx="1" fill="#7ab8e0"/>
-    <rect x="97" y="18" width="5" height="3" rx="1" fill="#7ab8e0"/>
-    <!-- solar panel left 1 -->
-    <rect x="2" y="2" width="18" height="8" rx="1" fill="#2563eb" stroke="#1e40af" stroke-width="0.5"/>
-    <line x1="5" y1="2" x2="5" y2="10" stroke="#1e40af" stroke-width="0.3"/>
-    <line x1="8" y1="2" x2="8" y2="10" stroke="#1e40af" stroke-width="0.3"/>
-    <line x1="11" y1="2" x2="11" y2="10" stroke="#1e40af" stroke-width="0.3"/>
-    <line x1="14" y1="2" x2="14" y2="10" stroke="#1e40af" stroke-width="0.3"/>
-    <line x1="17" y1="2" x2="17" y2="10" stroke="#1e40af" stroke-width="0.3"/>
-    <!-- solar panel left 2 -->
-    <rect x="2" y="40" width="18" height="8" rx="1" fill="#2563eb" stroke="#1e40af" stroke-width="0.5"/>
-    <line x1="5" y1="40" x2="5" y2="48" stroke="#1e40af" stroke-width="0.3"/>
-    <line x1="8" y1="40" x2="8" y2="48" stroke="#1e40af" stroke-width="0.3"/>
-    <line x1="11" y1="40" x2="11" y2="48" stroke="#1e40af" stroke-width="0.3"/>
-    <line x1="14" y1="40" x2="14" y2="48" stroke="#1e40af" stroke-width="0.3"/>
-    <line x1="17" y1="40" x2="17" y2="48" stroke="#1e40af" stroke-width="0.3"/>
-    <!-- strut left -->
-    <line x1="11" y1="10" x2="20" y2="23" stroke="#999" stroke-width="0.8"/>
-    <line x1="11" y1="40" x2="20" y2="27" stroke="#999" stroke-width="0.8"/>
-    <!-- solar panel right 1 -->
-    <rect x="120" y="2" width="18" height="8" rx="1" fill="#2563eb" stroke="#1e40af" stroke-width="0.5"/>
-    <line x1="123" y1="2" x2="123" y2="10" stroke="#1e40af" stroke-width="0.3"/>
-    <line x1="126" y1="2" x2="126" y2="10" stroke="#1e40af" stroke-width="0.3"/>
-    <line x1="129" y1="2" x2="129" y2="10" stroke="#1e40af" stroke-width="0.3"/>
-    <line x1="132" y1="2" x2="132" y2="10" stroke="#1e40af" stroke-width="0.3"/>
-    <line x1="135" y1="2" x2="135" y2="10" stroke="#1e40af" stroke-width="0.3"/>
-    <!-- solar panel right 2 -->
-    <rect x="120" y="40" width="18" height="8" rx="1" fill="#2563eb" stroke="#1e40af" stroke-width="0.5"/>
-    <line x1="123" y1="40" x2="123" y2="48" stroke="#1e40af" stroke-width="0.3"/>
-    <line x1="126" y1="40" x2="126" y2="48" stroke="#1e40af" stroke-width="0.3"/>
-    <line x1="129" y1="40" x2="129" y2="48" stroke="#1e40af" stroke-width="0.3"/>
-    <line x1="132" y1="40" x2="132" y2="48" stroke="#1e40af" stroke-width="0.3"/>
-    <line x1="135" y1="40" x2="135" y2="48" stroke="#1e40af" stroke-width="0.3"/>
-    <!-- strut right -->
-    <line x1="129" y1="10" x2="120" y2="23" stroke="#999" stroke-width="0.8"/>
-    <line x1="129" y1="40" x2="120" y2="27" stroke="#999" stroke-width="0.8"/>
-    <!-- radiator panels -->
-    <rect x="38" y="5" width="10" height="4" rx="0.5" fill="#e8c46a" stroke="#c9a84c" stroke-width="0.3"/>
-    <rect x="92" y="41" width="10" height="4" rx="0.5" fill="#e8c46a" stroke="#c9a84c" stroke-width="0.3"/>
-    <!-- canadarm -->
-    <line x1="88" y1="35" x2="100" y2="44" stroke="#ddd" stroke-width="1"/>
-    <line x1="100" y1="44" x2="112" y2="38" stroke="#ddd" stroke-width="1"/>
-    <circle cx="112" cy="38" r="1.5" fill="#fff" stroke="#aaa" stroke-width="0.3"/>
-  </svg>`;
+  const iss=document.createElement('div');iss.className='iss-wrapper';
+  iss.innerHTML='<svg width="140" height="50" viewBox="0 0 140 50" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="10" y="23" width="120" height="4" rx="1" fill="#b0b0b0" stroke="#888" stroke-width="0.5"/><rect x="52" y="12" width="36" height="26" rx="4" fill="#ccc" stroke="#999" stroke-width="0.5"/><rect x="55" y="15" width="6" height="4" rx="1" fill="#7ab8e0"/><rect x="63" y="15" width="6" height="4" rx="1" fill="#7ab8e0"/><rect x="55" y="31" width="14" height="3" rx="1" fill="#aaa"/><rect x="30" y="15" width="24" height="20" rx="3" fill="#d4d4d4" stroke="#aaa" stroke-width="0.5"/><circle cx="42" cy="25" r="4" fill="#1a1a3e" stroke="#666" stroke-width="0.5"/><circle cx="42" cy="25" r="2.5" fill="#2a4a7e"/><rect x="86" y="15" width="24" height="20" rx="3" fill="#d4d4d4" stroke="#aaa" stroke-width="0.5"/><rect x="90" y="18" width="5" height="3" rx="1" fill="#7ab8e0"/><rect x="97" y="18" width="5" height="3" rx="1" fill="#7ab8e0"/><rect x="2" y="2" width="18" height="8" rx="1" fill="#2563eb" stroke="#1e40af" stroke-width="0.5"/><line x1="5" y1="2" x2="5" y2="10" stroke="#1e40af" stroke-width="0.3"/><line x1="8" y1="2" x2="8" y2="10" stroke="#1e40af" stroke-width="0.3"/><line x1="11" y1="2" x2="11" y2="10" stroke="#1e40af" stroke-width="0.3"/><line x1="14" y1="2" x2="14" y2="10" stroke="#1e40af" stroke-width="0.3"/><line x1="17" y1="2" x2="17" y2="10" stroke="#1e40af" stroke-width="0.3"/><rect x="2" y="40" width="18" height="8" rx="1" fill="#2563eb" stroke="#1e40af" stroke-width="0.5"/><line x1="5" y1="40" x2="5" y2="48" stroke="#1e40af" stroke-width="0.3"/><line x1="8" y1="40" x2="8" y2="48" stroke="#1e40af" stroke-width="0.3"/><line x1="11" y1="40" x2="11" y2="48" stroke="#1e40af" stroke-width="0.3"/><line x1="14" y1="40" x2="14" y2="48" stroke="#1e40af" stroke-width="0.3"/><line x1="17" y1="40" x2="17" y2="48" stroke="#1e40af" stroke-width="0.3"/><line x1="11" y1="10" x2="20" y2="23" stroke="#999" stroke-width="0.8"/><line x1="11" y1="40" x2="20" y2="27" stroke="#999" stroke-width="0.8"/><rect x="120" y="2" width="18" height="8" rx="1" fill="#2563eb" stroke="#1e40af" stroke-width="0.5"/><line x1="123" y1="2" x2="123" y2="10" stroke="#1e40af" stroke-width="0.3"/><line x1="126" y1="2" x2="126" y2="10" stroke="#1e40af" stroke-width="0.3"/><line x1="129" y1="2" x2="129" y2="10" stroke="#1e40af" stroke-width="0.3"/><line x1="132" y1="2" x2="132" y2="10" stroke="#1e40af" stroke-width="0.3"/><line x1="135" y1="2" x2="135" y2="10" stroke="#1e40af" stroke-width="0.3"/><rect x="120" y="40" width="18" height="8" rx="1" fill="#2563eb" stroke="#1e40af" stroke-width="0.5"/><line x1="123" y1="40" x2="123" y2="48" stroke="#1e40af" stroke-width="0.3"/><line x1="126" y1="40" x2="126" y2="48" stroke="#1e40af" stroke-width="0.3"/><line x1="129" y1="40" x2="129" y2="48" stroke="#1e40af" stroke-width="0.3"/><line x1="132" y1="40" x2="132" y2="48" stroke="#1e40af" stroke-width="0.3"/><line x1="135" y1="40" x2="135" y2="48" stroke="#1e40af" stroke-width="0.3"/><line x1="129" y1="10" x2="120" y2="23" stroke="#999" stroke-width="0.8"/><line x1="129" y1="40" x2="120" y2="27" stroke="#999" stroke-width="0.8"/><rect x="38" y="5" width="10" height="4" rx="0.5" fill="#e8c46a" stroke="#c9a84c" stroke-width="0.3"/><rect x="92" y="41" width="10" height="4" rx="0.5" fill="#e8c46a" stroke="#c9a84c" stroke-width="0.3"/><line x1="88" y1="35" x2="100" y2="44" stroke="#ddd" stroke-width="1"/><line x1="100" y1="44" x2="112" y2="38" stroke="#ddd" stroke-width="1"/><circle cx="112" cy="38" r="1.5" fill="#fff" stroke="#aaa" stroke-width="0.3"/></svg>';
   document.body.appendChild(iss);
-
-  const issY=Math.random()*(window.innerHeight*0.4)+30;
-  let issX=-160;
-  const issSpeed=0.6+Math.random()*0.4;
-  let goingRight=true;
-
-  // Create satellites that orbit the ISS (fewer on mobile)
-  const satCount=isMobile?2:3;
-  const sats=[];
+  const issY=Math.random()*(window.innerHeight*0.4)+30;let issX=-160;const issSpeed=0.6+Math.random()*0.4;let goingRight=true;
+  const satCount=isMobile?2:3;const sats=[];
   for(let i=0;i<satCount;i++){
-    const sat=document.createElement("div");
-    sat.className="sat";
-    sat.innerHTML=`<div class="sat-body"></div><div class="sat-panel-l"></div><div class="sat-panel-r"></div><div class="sat-thrust"></div>`;
+    const sat=document.createElement('div');sat.className='sat';
+    sat.innerHTML='<div class="sat-body"></div><div class="sat-panel-l"></div><div class="sat-panel-r"></div><div class="sat-thrust"></div>';
     document.body.appendChild(sat);
-    sats.push({
-      el:sat,
-      orbitR:30+i*18,
-      angle:i*(Math.PI*2/3),
-      speed:0.02+Math.random()*0.015,
-      tiltX:0.6+Math.random()*0.4,
-      tiltY:0.3+Math.random()*0.3
-    });
+    sats.push({el:sat,orbitR:30+i*18,angle:i*(Math.PI*2/3),speed:0.02+Math.random()*0.015,tiltX:0.6+Math.random()*0.4,tiltY:0.3+Math.random()*0.3});
   }
-
-  // ── EVA Astronaut — tethered to ISS, doing repairs ──
-  const eva=document.createElement("div");
-  eva.className="astronaut";
-  eva.style.zIndex='9';
-  // Smaller astronaut with tools, arm reaching out to ISS hull
-  eva.innerHTML=`<svg width="38" height="48" viewBox="0 0 38 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <!-- tether to ISS -->
-    <path d="M19 18 Q24 8 30 2" stroke="#aaa" stroke-width="0.8" fill="none" stroke-dasharray="2 1.5"/>
-    <circle cx="30" cy="2" r="1" fill="#ccc"/>
-    <!-- backpack / SAFER unit -->
-    <rect x="7" y="16" width="6" height="14" rx="1.5" fill="#555"/>
-    <rect x="8" y="18" width="1.5" height="3" rx="0.5" fill="#888"/>
-    <rect x="10.5" y="18" width="1.5" height="3" rx="0.5" fill="#888"/>
-    <!-- body / suit -->
-    <rect x="12" y="16" width="13" height="16" rx="3" fill="#e8e8e8" stroke="#ccc" stroke-width="0.4"/>
-    <!-- chest panel -->
-    <rect x="14" y="19" width="8" height="2.5" rx="0.8" fill="#ddd"/>
-    <rect x="15.5" y="19.5" width="2" height="1.2" rx="0.4" fill="#f44"/>
-    <rect x="18.5" y="19.5" width="1.5" height="1.2" rx="0.4" fill="#4a4"/>
-    <!-- helmet -->
-    <ellipse cx="18.5" cy="12" rx="7.5" ry="8.5" fill="#e8e8e8" stroke="#ccc" stroke-width="0.4"/>
-    <!-- visor -->
-    <ellipse cx="18.5" cy="11.5" rx="5.5" ry="5.5" fill="#1a1a3e"/>
-    <ellipse cx="18.5" cy="11" rx="5" ry="4.8" fill="url(#evaVisor)"/>
-    <!-- visor glare -->
-    <ellipse cx="16" cy="9.5" rx="1.5" ry="1" fill="rgba(255,255,255,0.3)" transform="rotate(-10 16 9.5)"/>
-    <!-- left arm reaching up (working on ISS) -->
-    <rect x="4" y="13" width="9" height="3" rx="1.5" fill="#e8e8e8" stroke="#ccc" stroke-width="0.3" transform="rotate(-40 8 15)"/>
-    <circle cx="3" cy="10" r="1.8" fill="#e0e0e0" stroke="#bbb" stroke-width="0.3"/>
-    <!-- tool in left hand -->
-    <rect x="1" y="7" width="1.2" height="5" rx="0.3" fill="#999" transform="rotate(-20 1.5 9)"/>
-    <rect x="0.2" y="6.5" width="2.8" height="1.5" rx="0.3" fill="#777" transform="rotate(-20 1.5 7)"/>
-    <!-- right arm holding handrail -->
-    <rect x="24" y="18" width="9" height="3" rx="1.5" fill="#e8e8e8" stroke="#ccc" stroke-width="0.3" transform="rotate(15 28 19)"/>
-    <circle cx="33" cy="20" r="1.8" fill="#e0e0e0" stroke="#bbb" stroke-width="0.3"/>
-    <!-- left leg -->
-    <rect x="13" y="31" width="4" height="10" rx="1.5" fill="#e8e8e8" stroke="#ccc" stroke-width="0.3" transform="rotate(12 15 31)"/>
-    <ellipse cx="15.5" cy="42" rx="2.5" ry="1.5" fill="#ddd" stroke="#bbb" stroke-width="0.2"/>
-    <!-- right leg floating back -->
-    <rect x="21" y="31" width="4" height="10" rx="1.5" fill="#e8e8e8" stroke="#ccc" stroke-width="0.3" transform="rotate(-15 23 31)"/>
-    <ellipse cx="22" cy="42" rx="2.5" ry="1.5" fill="#ddd" stroke="#bbb" stroke-width="0.2"/>
-    <!-- sparks from tool -->
-    <circle cx="1.5" cy="6" r="0.6" fill="#ff0" opacity="0.8">
-      <animate attributeName="opacity" values="0;1;0" dur="0.3s" repeatCount="indefinite"/>
-    </circle>
-    <circle cx="0.5" cy="5" r="0.4" fill="#fa0" opacity="0.6">
-      <animate attributeName="opacity" values="1;0;1" dur="0.25s" repeatCount="indefinite"/>
-    </circle>
-    <circle cx="2.5" cy="5.5" r="0.5" fill="#ff6" opacity="0.7">
-      <animate attributeName="opacity" values="0.5;1;0.2" dur="0.35s" repeatCount="indefinite"/>
-    </circle>
-    <defs>
-      <radialGradient id="evaVisor" cx="40%" cy="35%">
-        <stop offset="0%" stop-color="#6ec6ff" stop-opacity="0.6"/>
-        <stop offset="60%" stop-color="#1a3a6e" stop-opacity="0.85"/>
-        <stop offset="100%" stop-color="#0a0a2e"/>
-      </radialGradient>
-    </defs>
-  </svg>`;
+  // EVA Astronaut
+  const eva=document.createElement('div');eva.className='astronaut';eva.style.zIndex='9';
+  eva.innerHTML='<svg width="38" height="48" viewBox="0 0 38 48" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M19 18 Q24 8 30 2" stroke="#aaa" stroke-width="0.8" fill="none" stroke-dasharray="2 1.5"/><circle cx="30" cy="2" r="1" fill="#ccc"/><rect x="7" y="16" width="6" height="14" rx="1.5" fill="#555"/><rect x="12" y="16" width="13" height="16" rx="3" fill="#e8e8e8" stroke="#ccc" stroke-width="0.4"/><ellipse cx="18.5" cy="12" rx="7.5" ry="8.5" fill="#e8e8e8" stroke="#ccc" stroke-width="0.4"/><ellipse cx="18.5" cy="11.5" rx="5.5" ry="5.5" fill="#1a1a3e"/><ellipse cx="18.5" cy="11" rx="5" ry="4.8" fill="url(#evaVisor)"/><ellipse cx="16" cy="9.5" rx="1.5" ry="1" fill="rgba(255,255,255,0.3)" transform="rotate(-10 16 9.5)"/><rect x="4" y="13" width="9" height="3" rx="1.5" fill="#e8e8e8" stroke="#ccc" stroke-width="0.3" transform="rotate(-40 8 15)"/><circle cx="3" cy="10" r="1.8" fill="#e0e0e0"/><rect x="24" y="18" width="9" height="3" rx="1.5" fill="#e8e8e8" stroke="#ccc" stroke-width="0.3" transform="rotate(15 28 19)"/><circle cx="33" cy="20" r="1.8" fill="#e0e0e0"/><rect x="13" y="31" width="4" height="10" rx="1.5" fill="#e8e8e8" transform="rotate(12 15 31)"/><rect x="21" y="31" width="4" height="10" rx="1.5" fill="#e8e8e8" transform="rotate(-15 23 31)"/><circle cx="1.5" cy="6" r="0.6" fill="#ff0" opacity="0.8"><animate attributeName="opacity" values="0;1;0" dur="0.3s" repeatCount="indefinite"/></circle><defs><radialGradient id="evaVisor" cx="40%" cy="35%"><stop offset="0%" stop-color="#6ec6ff" stop-opacity="0.6"/><stop offset="60%" stop-color="#1a3a6e" stop-opacity="0.85"/><stop offset="100%" stop-color="#0a0a2e"/></radialGradient></defs></svg>';
   document.body.appendChild(eva);
-
-  // EVA astronaut offset from ISS center — hangs near the starboard module
-  const evaOffsetX=45;
-  const evaOffsetY=-22;
-  let evaBob=0;
-
+  const evaOffsetX=45,evaOffsetY=-22;let evaBob=0;
   function animateISS(){
-    if(goingRight){
-      issX+=issSpeed;
-      if(issX>window.innerWidth+20){goingRight=false;}
-    }else{
-      issX-=issSpeed;
-      if(issX<-160){goingRight=true;}
-    }
-
-    iss.style.left=issX+"px";
-    iss.style.top=issY+"px";
-    iss.style.transform=goingRight?'scaleX(1)':'scaleX(-1)';
-
-    // ISS center in screen coords
-    const issCX=issX+70;
-    const issCY=issY+25;
-
-    // EVA astronaut follows ISS with gentle bob
+    if(goingRight){issX+=issSpeed;if(issX>window.innerWidth+20)goingRight=false;}
+    else{issX-=issSpeed;if(issX<-160)goingRight=true;}
+    iss.style.left=issX+'px';iss.style.top=issY+'px';iss.style.transform=goingRight?'scaleX(1)':'scaleX(-1)';
+    const issCX=issX+70,issCY=issY+25;
     evaBob+=0.03;
-    const evaX=issCX+(goingRight?evaOffsetX:-evaOffsetX);
-    const evaY=issCY+evaOffsetY+Math.sin(evaBob)*4;
-    eva.style.left=evaX+'px';
-    eva.style.top=evaY+'px';
-    // Gently sway + flip with ISS direction
+    const evaX=issCX+(goingRight?evaOffsetX:-evaOffsetX),evaY=issCY+evaOffsetY+Math.sin(evaBob)*4;
+    eva.style.left=evaX+'px';eva.style.top=evaY+'px';
     const evaRot=Math.sin(evaBob*0.7)*8;
     eva.style.transform=(goingRight?'':'scaleX(-1) ')+'rotate('+evaRot+'deg)';
-
-    // Update satellites orbiting ISS
     sats.forEach(s=>{
       s.angle+=s.speed;
-      const sx=issCX+Math.cos(s.angle)*s.orbitR*s.tiltX;
-      const sy=issCY+Math.sin(s.angle)*s.orbitR*s.tiltY;
-      s.el.style.left=sx+"px";
-      s.el.style.top=sy+"px";
-      // rotate satellite to face direction of travel
-      const deg=Math.atan2(
-        Math.cos(s.angle)*s.orbitR*s.tiltY,
-        -Math.sin(s.angle)*s.orbitR*s.tiltX
-      )*180/Math.PI;
-      s.el.style.transform=`rotate(${deg+90}deg)`;
+      const sx=issCX+Math.cos(s.angle)*s.orbitR*s.tiltX,sy=issCY+Math.sin(s.angle)*s.orbitR*s.tiltY;
+      s.el.style.left=sx+'px';s.el.style.top=sy+'px';
+      const deg=Math.atan2(Math.cos(s.angle)*s.orbitR*s.tiltY,-Math.sin(s.angle)*s.orbitR*s.tiltX)*180/Math.PI;
+      s.el.style.transform='rotate('+(deg+90)+'deg)';
     });
-
     requestAnimationFrame(animateISS);
-  }
-  animateISS();
+  }animateISS();
 }
 createISS();
 
 // ═══════════════════════════════════════════
-// BLACK HOLE — eats everything in its path,
-// Big Bang explosion, then everything resets
+// BLACK HOLE — 60s cycle with Big Bang
 // ═══════════════════════════════════════════
 (function(){
-  const clockEl=document.querySelector('.clock');
   const sunEl=document.querySelector('.sun');
   const orbits=document.querySelectorAll('.orbit');
-
-  // Create black hole element
-  const bh=document.createElement("div");
-  bh.className="blackhole";
-  bh.style.width="90px";
-  bh.style.height="90px";
-  bh.innerHTML=`<div class="bh-glow"></div><div class="bh-disk"></div><div class="bh-disk2"></div><div class="bh-core"></div>`;
+  const bh=document.createElement('div');bh.className='blackhole';bh.style.width='90px';bh.style.height='90px';
+  bh.innerHTML='<div class="bh-glow"></div><div class="bh-disk"></div><div class="bh-disk2"></div><div class="bh-core"></div>';
   document.body.appendChild(bh);
-
-  function getClockCenter(){
-    const r=clockEl.getBoundingClientRect();
-    return {x:r.left+r.width/2, y:r.top+r.height/2};
+  function getClockCenter(){const r=clockEl.getBoundingClientRect();return{x:r.left+r.width/2,y:r.top+r.height/2};}
+  function randomEdgePos(){const side=Math.floor(Math.random()*4),W=window.innerWidth,H=window.innerHeight;
+    switch(side){case 0:return{x:80+Math.random()*(W-160),y:40};case 1:return{x:W-50,y:80+Math.random()*(H-160)};case 2:return{x:80+Math.random()*(W-160),y:H-50};default:return{x:50,y:80+Math.random()*(H-160)};}}
+  let startX,startY,targetX,targetY,devourPhase=0,devourStart=0;
+  const CYCLE_DURATION=60000;let cycleStart=Date.now();const eatenSet=new Set();
+  function getBHPos(){return{x:parseFloat(bh.style.left)||0,y:parseFloat(bh.style.top)||0};}
+  function eatElement(el,bhPos){if(eatenSet.has(el))return;eatenSet.add(el);el.classList.add('being-eaten');el.style.left=bhPos.x+'px';el.style.top=bhPos.y+'px';el.style.transform='translate(-50%,-50%) scale(0) rotate(720deg)';el.style.opacity='0';spawnSwirlParticles(bhPos.x,bhPos.y);}
+  function spawnSwirlParticles(cx,cy){for(let i=0;i<SWIRL_COUNT;i++){const p=document.createElement('div');p.className='debris';const colors=['#ff6','#f80','#f4f','#8af','#fff'];const size=2+Math.random()*4;p.style.width=size+'px';p.style.height=size+'px';p.style.background=colors[Math.floor(Math.random()*colors.length)];p.style.boxShadow='0 0 '+(size*2)+'px '+p.style.background;p.style.left=cx+'px';p.style.top=cy+'px';document.body.appendChild(p);const angle=Math.random()*Math.PI*2,dist=20+Math.random()*30,dur=300+Math.random()*300,startT=performance.now();(function animP(now){const t=Math.min((now-startT)/dur,1),r=dist*t,spin=angle+t*Math.PI*2;p.style.left=(cx+Math.cos(spin)*r*(1-t))+'px';p.style.top=(cy+Math.sin(spin)*r*(1-t))+'px';p.style.opacity=String(1-t);if(t<1)requestAnimationFrame(animP);else p.remove();})(performance.now());}}
+  function eatNearbyObjects(){const bhPos=getBHPos(),eatRadius=55;
+    document.querySelectorAll('.astronaut').forEach(a=>{const ax=parseFloat(a.style.left)||0,ay=parseFloat(a.style.top)||0;if(Math.hypot(ax-bhPos.x,ay-bhPos.y)<eatRadius)eatElement(a,bhPos);});
+    document.querySelectorAll('.iss-wrapper').forEach(iss=>{const ix=parseFloat(iss.style.left)||0,iy=parseFloat(iss.style.top)||0;if(Math.hypot(ix+70-bhPos.x,iy+25-bhPos.y)<eatRadius+40)eatElement(iss,bhPos);});
+    document.querySelectorAll('.sat').forEach(s=>{const sx=parseFloat(s.style.left)||0,sy=parseFloat(s.style.top)||0;if(Math.hypot(sx-bhPos.x,sy-bhPos.y)<eatRadius)eatElement(s,bhPos);});
+    document.querySelectorAll('.rocket').forEach(r=>{const rx=parseFloat(r.style.left)||0,ry=parseFloat(r.style.top)||0;if(Math.hypot(rx-bhPos.x,ry-bhPos.y)<eatRadius)eatElement(r,bhPos);});
+    document.querySelectorAll('.meteor').forEach(m=>{const mx=parseFloat(m.style.left)||0,my=parseFloat(m.style.top)||0;if(Math.hypot(mx-bhPos.x,my-bhPos.y)<eatRadius)eatElement(m,bhPos);});
+    document.querySelectorAll('.asteroid').forEach(a=>{const ax=parseFloat(a.style.left)||0,ay=parseFloat(a.style.top)||0;if(Math.hypot(ax-bhPos.x,ay-bhPos.y)<eatRadius)eatElement(a,bhPos);});
   }
-
-  function randomEdgePos(){
-    const side=Math.floor(Math.random()*4);
-    const W=window.innerWidth, H=window.innerHeight;
-    switch(side){
-      case 0: return {x:80+Math.random()*(W-160), y:40};
-      case 1: return {x:W-50, y:80+Math.random()*(H-160)};
-      case 2: return {x:80+Math.random()*(W-160), y:H-50};
-      default: return {x:50, y:80+Math.random()*(H-160)};
-    }
-  }
-
-  let startX, startY, targetX, targetY;
-  let devourPhase=0; // 0=approaching, 1=sucking clock, 2=bigbang, 3=restoring
-  let devourStart=0;
-  const CYCLE_DURATION=60000; // 60s approach
-  let cycleStart=Date.now();
-  const eatenSet=new Set();
-
-  function getBHPos(){
-    return {x:parseFloat(bh.style.left)||0, y:parseFloat(bh.style.top)||0};
-  }
-
-  // ── Suck a DOM element toward the black hole and hide it ──
-  function eatElement(el,bhPos){
-    if(eatenSet.has(el)) return;
-    eatenSet.add(el);
-    el.classList.add('being-eaten');
-    el.style.left=bhPos.x+'px';
-    el.style.top=bhPos.y+'px';
-    el.style.transform='translate(-50%,-50%) scale(0) rotate(720deg)';
-    el.style.opacity='0';
-    spawnSwirlParticles(bhPos.x, bhPos.y);
-  }
-
-  // ── Swirl particles when eating something ──
-  function spawnSwirlParticles(cx,cy){
-    for(let i=0;i<SWIRL_COUNT;i++){
-      const p=document.createElement('div');
-      p.className='debris';
-      const colors=['#ff6','#f80','#f4f','#8af','#fff'];
-      const size=2+Math.random()*4;
-      p.style.width=size+'px';
-      p.style.height=size+'px';
-      p.style.background=colors[Math.floor(Math.random()*colors.length)];
-      p.style.boxShadow='0 0 '+(size*2)+'px '+p.style.background;
-      p.style.left=cx+'px';
-      p.style.top=cy+'px';
-      document.body.appendChild(p);
-      const angle=Math.random()*Math.PI*2;
-      const dist=20+Math.random()*30;
-      const dur=300+Math.random()*300;
-      const startT=performance.now();
-      (function animP(now){
-        const t=Math.min((now-startT)/dur,1);
-        const r=dist*t;
-        const spin=angle+t*Math.PI*2;
-        p.style.left=(cx+Math.cos(spin)*r*(1-t))+'px';
-        p.style.top=(cy+Math.sin(spin)*r*(1-t))+'px';
-        p.style.opacity=String(1-t);
-        if(t<1) requestAnimationFrame(animP);
-        else p.remove();
-      })(performance.now());
-    }
-  }
-
-  // ── Check proximity and eat nearby objects during approach ──
-  function eatNearbyObjects(){
-    const bhPos=getBHPos();
-    const eatRadius=55;
-
-    document.querySelectorAll('.astronaut').forEach(a=>{
-      const ax=parseFloat(a.style.left)||0, ay=parseFloat(a.style.top)||0;
-      if(Math.hypot(ax-bhPos.x, ay-bhPos.y)<eatRadius) eatElement(a,bhPos);
-    });
-
-    document.querySelectorAll('.iss-wrapper').forEach(iss=>{
-      const ix=parseFloat(iss.style.left)||0, iy=parseFloat(iss.style.top)||0;
-      if(Math.hypot(ix+70-bhPos.x, iy+25-bhPos.y)<eatRadius+40) eatElement(iss,bhPos);
-    });
-
-    document.querySelectorAll('.sat').forEach(s=>{
-      const sx=parseFloat(s.style.left)||0, sy=parseFloat(s.style.top)||0;
-      if(Math.hypot(sx-bhPos.x, sy-bhPos.y)<eatRadius) eatElement(s,bhPos);
-    });
-
-    document.querySelectorAll('.rocket').forEach(r=>{
-      const rx=parseFloat(r.style.left)||0, ry=parseFloat(r.style.top)||0;
-      if(Math.hypot(rx-bhPos.x, ry-bhPos.y)<eatRadius) eatElement(r,bhPos);
-    });
-
-    document.querySelectorAll('.meteor').forEach(m=>{
-      const mx=parseFloat(m.style.left)||0, my=parseFloat(m.style.top)||0;
-      if(Math.hypot(mx-bhPos.x, my-bhPos.y)<eatRadius) eatElement(m,bhPos);
-    });
-
-    document.querySelectorAll('.asteroid').forEach(a=>{
-      const ax=parseFloat(a.style.left)||0, ay=parseFloat(a.style.top)||0;
-      if(Math.hypot(ax-bhPos.x, ay-bhPos.y)<eatRadius) eatElement(a,bhPos);
-    });
-  }
-
-  // ── BIG BANG EXPLOSION ──
   function triggerBigBang(){
-    const bhPos=getBHPos();
-
-    // 1) Screen flash
-    const flash=document.createElement('div');
-    flash.className='bigbang-flash';
-    document.body.appendChild(flash);
+    const bhPos=getBHPos();playExplosion();
+    const flash=document.createElement('div');flash.className='bigbang-flash';document.body.appendChild(flash);
     const flashStart=performance.now();
-    (function animFlash(now){
-      const t=(now-flashStart)/1200;
-      if(t<0.15) flash.style.opacity=String(t/0.15);
-      else if(t<0.4) flash.style.opacity='1';
-      else flash.style.opacity=String(Math.max(0,1-(t-0.4)/0.6));
-      if(t<1) requestAnimationFrame(animFlash);
-      else flash.remove();
-    })(performance.now());
-
-    // 2) Shockwave rings (3 waves)
-    for(let w=0;w<3;w++){
-      setTimeout(()=>{
-        const ring=document.createElement('div');
-        ring.className='shockwave';
-        ring.style.left=bhPos.x+'px';
-        ring.style.top=bhPos.y+'px';
-        ring.style.width='10px';
-        ring.style.height='10px';
-        document.body.appendChild(ring);
-        const ringStart=performance.now();
-        const maxSize=Math.max(window.innerWidth,window.innerHeight)*1.5;
-        (function animRing(now){
-          const t=Math.min((now-ringStart)/1200,1);
-          const size=10+t*maxSize;
-          ring.style.width=size+'px';
-          ring.style.height=size+'px';
-          ring.style.opacity=String(1-t);
-          ring.style.borderWidth=Math.max(1,4*(1-t))+'px';
-          if(t<1) requestAnimationFrame(animRing);
-          else ring.remove();
-        })(performance.now());
-      }, w*250);
-    }
-
-    // 3) Debris / star particles flying out
-    for(let i=0;i<DEBRIS_COUNT;i++){
-      const d=document.createElement('div');
-      d.className='debris';
-      const colors=['#fff','#ff6','#f80','#f4f','#4af','#fa0','#f33','#3ff'];
-      const size=2+Math.random()*6;
-      d.style.width=size+'px';
-      d.style.height=size+'px';
-      const col=colors[Math.floor(Math.random()*colors.length)];
-      d.style.background=col;
-      d.style.boxShadow='0 0 '+(size*3)+'px '+col;
-      d.style.left=bhPos.x+'px';
-      d.style.top=bhPos.y+'px';
-      document.body.appendChild(d);
-      const angle=Math.random()*Math.PI*2;
-      const speed=150+Math.random()*400;
-      const dStart=performance.now();
-      const dur=800+Math.random()*1200;
-      (function animD(now){
-        const t=Math.min((now-dStart)/dur,1);
-        const ease=1-Math.pow(1-t,3);
-        const dist=speed*ease;
-        d.style.left=(bhPos.x+Math.cos(angle)*dist)+'px';
-        d.style.top=(bhPos.y+Math.sin(angle)*dist)+'px';
-        d.style.opacity=String(t<0.7?1:(1-(t-0.7)/0.3));
-        const s=size*(1-t*0.5);
-        d.style.width=s+'px';
-        d.style.height=s+'px';
-        if(t<1) requestAnimationFrame(animD);
-        else d.remove();
-      })(performance.now());
-    }
-
-    // 4) Screen shake (on scene wrapper, safe for mobile)
-    const shakeStart=performance.now();
-    (function shake(now){
-      const t=(now-shakeStart)/800;
-      if(t<1){
-        const intensity=8*(1-t);
-        sceneEl.style.transform='translate('+(Math.random()-0.5)*intensity+'px,'+(Math.random()-0.5)*intensity+'px)';
-        requestAnimationFrame(shake);
-      } else {
-        sceneEl.style.transform='';
-      }
-    })(performance.now());
+    (function animFlash(now){const t=(now-flashStart)/1200;if(t<0.15)flash.style.opacity=String(t/0.15);else if(t<0.4)flash.style.opacity='1';else flash.style.opacity=String(Math.max(0,1-(t-0.4)/0.6));if(t<1)requestAnimationFrame(animFlash);else flash.remove();})(performance.now());
+    for(let w=0;w<3;w++){setTimeout(()=>{const ring=document.createElement('div');ring.className='shockwave';ring.style.left=bhPos.x+'px';ring.style.top=bhPos.y+'px';ring.style.width='10px';ring.style.height='10px';document.body.appendChild(ring);const ringStart=performance.now(),maxSize=Math.max(window.innerWidth,window.innerHeight)*1.5;(function animRing(now){const t=Math.min((now-ringStart)/1200,1),size=10+t*maxSize;ring.style.width=size+'px';ring.style.height=size+'px';ring.style.opacity=String(1-t);ring.style.borderWidth=Math.max(1,4*(1-t))+'px';if(t<1)requestAnimationFrame(animRing);else ring.remove();})(performance.now());},w*250);}
+    for(let i=0;i<DEBRIS_COUNT;i++){const d=document.createElement('div');d.className='debris';const colors=['#fff','#ff6','#f80','#f4f','#4af','#fa0','#f33','#3ff'];const size=2+Math.random()*6;d.style.width=size+'px';d.style.height=size+'px';const col=colors[Math.floor(Math.random()*colors.length)];d.style.background=col;d.style.boxShadow='0 0 '+(size*3)+'px '+col;d.style.left=bhPos.x+'px';d.style.top=bhPos.y+'px';document.body.appendChild(d);const angle=Math.random()*Math.PI*2,speed=150+Math.random()*400,dStart=performance.now(),dur=800+Math.random()*1200;(function animD(now){const t=Math.min((now-dStart)/dur,1),ease=1-Math.pow(1-t,3),dist=speed*ease;d.style.left=(bhPos.x+Math.cos(angle)*dist)+'px';d.style.top=(bhPos.y+Math.sin(angle)*dist)+'px';d.style.opacity=String(t<0.7?1:(1-(t-0.7)/0.3));const s=size*(1-t*0.5);d.style.width=s+'px';d.style.height=s+'px';if(t<1)requestAnimationFrame(animD);else d.remove();})(performance.now());}
+    const shakeStart=performance.now();(function shake(now){const t=(now-shakeStart)/800;if(t<1){const intensity=8*(1-t);sceneEl.style.transform='translate('+(Math.random()-0.5)*intensity+'px,'+(Math.random()-0.5)*intensity+'px)';requestAnimationFrame(shake);}else sceneEl.style.transform='';})(performance.now());
   }
-
-  // ── Restore eaten objects ──
-  function restoreEatenObjects(){
-    eatenSet.forEach(el=>{
-      el.classList.remove('being-eaten');
-      el.style.opacity='1';
-      el.style.transform='';
-    });
-    eatenSet.clear();
-  }
-
-  function resetCycle(){
-    const s=randomEdgePos();
-    startX=s.x; startY=s.y;
-    const cc=getClockCenter();
-    targetX=cc.x; targetY=cc.y;
-    devourPhase=0;
-    cycleStart=Date.now();
-    bh.style.left=startX+"px";
-    bh.style.top=startY+"px";
-    bh.style.transform='translate(-50%,-50%) scale(0.7)';
-    bh.style.opacity='0.85';
-    // Restore clock visuals
-    sunEl.style.transform='translate(-50%,-50%) scale(1)';
-    sunEl.style.opacity='1';
-    orbits.forEach(o=>{o.style.opacity='1'; o.style.transform='translate(-50%,-50%) scale(1)';});
-    [hourPlanet,minutePlanet,secondPlanet].forEach(p=>{
-      p.style.opacity='1';
-      p.style.transform='translate(-50%,-50%) scale(1)';
-    });
-    restoreEatenObjects();
-    falling=false;
-  }
-
+  function restoreEatenObjects(){eatenSet.forEach(el=>{el.classList.remove('being-eaten');el.style.opacity='1';el.style.transform='';});eatenSet.clear();}
+  function resetCycle(){const s=randomEdgePos();startX=s.x;startY=s.y;const cc=getClockCenter();targetX=cc.x;targetY=cc.y;devourPhase=0;cycleStart=Date.now();bh.style.left=startX+'px';bh.style.top=startY+'px';bh.style.transform='translate(-50%,-50%) scale(0.7)';bh.style.opacity='0.85';sunEl.style.transform='translate(-50%,-50%) scale(1)';sunEl.style.opacity='1';orbits.forEach(o=>{o.style.opacity='1';o.style.transform='translate(-50%,-50%) scale(1)';});[hourPlanet,minutePlanet,secondPlanet].forEach(p=>{p.style.opacity='1';p.style.transform='translate(-50%,-50%) scale(1)';});restoreEatenObjects();falling=false;}
   resetCycle();
-
   function tick(){
-    if(devourPhase===0){
-      // ── APPROACH ── eat anything in the way
-      const elapsed=Date.now()-cycleStart;
-      const progress=Math.min(elapsed/CYCLE_DURATION, 1);
-      const eased=progress*progress;
-
-      const posX=startX+(targetX-startX)*eased;
-      const posY=startY+(targetY-startY)*eased;
-      bh.style.left=posX+"px";
-      bh.style.top=posY+"px";
-
-      const scale=0.7+eased*0.5;
-      bh.style.transform='translate(-50%,-50%) scale('+scale+')';
-      bh.style.opacity=String(0.85+eased*0.15);
-
-      // Eat objects it passes near
-      eatNearbyObjects();
-
-      if(progress>=1){
-        devourPhase=1;
-        devourStart=Date.now();
-        falling=true;
-      }
-    }
-    else if(devourPhase===1){
-      // ── DEVOURING CLOCK ── suck everything in over 2s
-      const t=Math.min((Date.now()-devourStart)/2000, 1);
-      const e=t*t;
-      falling=true;
-
-      eatNearbyObjects();
-
-      sunEl.style.transform='translate(-50%,-50%) scale('+(1-e)+')';
-      sunEl.style.opacity=String(1-e);
-      orbits.forEach(o=>{
-        o.style.opacity=String(1-e);
-        o.style.transform='translate(-50%,-50%) scale('+(1-e)+')';
-      });
-      [hourPlanet,minutePlanet,secondPlanet].forEach(p=>{
-        const px=parseFloat(p.style.left)||center;
-        const py=parseFloat(p.style.top)||center;
-        p.style.left=center+(px-center)*(1-e*0.15)+"px";
-        p.style.top=center+(py-center)*(1-e*0.15)+"px";
-        p.style.opacity=String(1-e);
-        p.style.transform='translate(-50%,-50%) scale('+(1-e)+')';
-      });
-
-      bh.style.transform='translate(-50%,-50%) scale('+(1.2+e*0.8)+')';
-
-      if(t>=1){
-        devourPhase=2;
-        devourStart=Date.now();
-        triggerBigBang();
-      }
-    }
-    else if(devourPhase===2){
-      // ── BIG BANG ── black hole collapses while explosion plays (2.5s)
-      const t=(Date.now()-devourStart)/2500;
-
-      if(t<0.3){
-        const burst=1.8+Math.sin(t/0.3*Math.PI)*0.5;
-        bh.style.transform='translate(-50%,-50%) scale('+burst+')';
-      } else {
-        const collapse=(t-0.3)/0.7;
-        const s=2.0*(1-collapse*collapse);
-        bh.style.transform='translate(-50%,-50%) scale('+Math.max(s,0.01)+')';
-        bh.style.opacity=String(Math.max(0,1-collapse));
-      }
-
-      if(t>=1){ devourPhase=3; devourStart=Date.now(); }
-    }
-    else if(devourPhase===3){
-      // ── RESTORE ── everything fades back peacefully over 2s
-      const t=Math.min((Date.now()-devourStart)/2000, 1);
-      const e=t<0.5?2*t*t:1-Math.pow(-2*t+2,2)/2; // ease in-out
-      falling=false;
-
-      sunEl.style.transform='translate(-50%,-50%) scale('+e+')';
-      sunEl.style.opacity=String(e);
-      orbits.forEach(o=>{
-        o.style.opacity=String(e);
-        o.style.transform='translate(-50%,-50%) scale('+e+')';
-      });
-      [hourPlanet,minutePlanet,secondPlanet].forEach(p=>{
-        p.style.opacity=String(e);
-        p.style.transform='translate(-50%,-50%) scale('+e+')';
-      });
-
-      bh.style.opacity='0';
-      bh.style.transform='translate(-50%,-50%) scale(0.01)';
-
-      if(t>=1) resetCycle();
-    }
-
+    if(devourPhase===0){bhPhase='Approach';const elapsed=Date.now()-cycleStart,progress=Math.min(elapsed/CYCLE_DURATION,1),eased=progress*progress;const posX=startX+(targetX-startX)*eased,posY=startY+(targetY-startY)*eased;bh.style.left=posX+'px';bh.style.top=posY+'px';const scale=0.7+eased*0.5;bh.style.transform='translate(-50%,-50%) scale('+scale+')';bh.style.opacity=String(0.85+eased*0.15);eatNearbyObjects();if(progress>=1){devourPhase=1;devourStart=Date.now();falling=true;}}
+    else if(devourPhase===1){bhPhase='Devouring';const t=Math.min((Date.now()-devourStart)/2000,1),e=t*t;falling=true;eatNearbyObjects();sunEl.style.transform='translate(-50%,-50%) scale('+(1-e)+')';sunEl.style.opacity=String(1-e);orbits.forEach(o=>{o.style.opacity=String(1-e);o.style.transform='translate(-50%,-50%) scale('+(1-e)+')';});[hourPlanet,minutePlanet,secondPlanet].forEach(p=>{const px=parseFloat(p.style.left)||center,py=parseFloat(p.style.top)||center;p.style.left=center+(px-center)*(1-e*0.15)+'px';p.style.top=center+(py-center)*(1-e*0.15)+'px';p.style.opacity=String(1-e);p.style.transform='translate(-50%,-50%) scale('+(1-e)+')';});bh.style.transform='translate(-50%,-50%) scale('+(1.2+e*0.8)+')';if(t>=1){devourPhase=2;devourStart=Date.now();triggerBigBang();}}
+    else if(devourPhase===2){bhPhase='Big Bang';const t=(Date.now()-devourStart)/2500;if(t<0.3){const burst=1.8+Math.sin(t/0.3*Math.PI)*0.5;bh.style.transform='translate(-50%,-50%) scale('+burst+')';}else{const collapse=(t-0.3)/0.7,s=2.0*(1-collapse*collapse);bh.style.transform='translate(-50%,-50%) scale('+Math.max(s,0.01)+')';bh.style.opacity=String(Math.max(0,1-collapse));}if(t>=1){devourPhase=3;devourStart=Date.now();}}
+    else if(devourPhase===3){bhPhase='Restoring';const t=Math.min((Date.now()-devourStart)/2000,1),e=t<0.5?2*t*t:1-Math.pow(-2*t+2,2)/2;falling=false;sunEl.style.transform='translate(-50%,-50%) scale('+e+')';sunEl.style.opacity=String(e);orbits.forEach(o=>{o.style.opacity=String(e);o.style.transform='translate(-50%,-50%) scale('+e+')';});[hourPlanet,minutePlanet,secondPlanet].forEach(p=>{p.style.opacity=String(e);p.style.transform='translate(-50%,-50%) scale('+e+')';});bh.style.opacity='0';bh.style.transform='translate(-50%,-50%) scale(0.01)';if(t>=1)resetCycle();}
     requestAnimationFrame(tick);
-  }
-  tick();
+  }tick();
 })();
 
 // ═══════════════════════════════════════════
-// ASTEROID SHOWER — rocky asteroids rain down
-// Rockets collide with them for explosions
+// ASTEROID SHOWER
 // ═══════════════════════════════════════════
 const activeAsteroids=[];
 const ASTEROID_COLORS=['#8B7355','#A0926B','#6B5B4A','#9C8B6E','#7A6B55','#B5A48A'];
-
 function buildAsteroidSVG(size){
-  // Irregular rocky shape using SVG polygon with random vertices
-  const cx=size/2, cy=size/2, r=size/2-2;
-  let points='';
-  const verts=isMobile?6:8;
-  for(let i=0;i<verts;i++){
-    const angle=(i/verts)*Math.PI*2;
-    const jitter=r*(0.6+Math.random()*0.4);
-    const px=cx+Math.cos(angle)*jitter;
-    const py=cy+Math.sin(angle)*jitter;
-    points+=(i?',':'')+px.toFixed(1)+' '+py.toFixed(1);
-  }
+  const cx=size/2,cy=size/2,r=size/2-2;let points='';const verts=isMobile?6:8;
+  for(let i=0;i<verts;i++){const angle=(i/verts)*Math.PI*2,jitter=r*(0.6+Math.random()*0.4),px=cx+Math.cos(angle)*jitter,py=cy+Math.sin(angle)*jitter;points+=(i?',':'')+px.toFixed(1)+' '+py.toFixed(1);}
   const baseCol=ASTEROID_COLORS[Math.floor(Math.random()*ASTEROID_COLORS.length)];
-  return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">
-    <defs>
-      <radialGradient id="ag${Date.now()+Math.random()}" cx="35%" cy="35%">
-        <stop offset="0%" stop-color="${baseCol}" stop-opacity="1"/>
-        <stop offset="70%" stop-color="#4A3C2A" stop-opacity="1"/>
-        <stop offset="100%" stop-color="#2A1F14" stop-opacity="1"/>
-      </radialGradient>
-    </defs>
-    <polygon points="${points}" fill="${baseCol}" stroke="#3A2F20" stroke-width="0.8"/>
-    <circle cx="${cx*0.7}" cy="${cy*0.7}" r="${size*0.08}" fill="rgba(0,0,0,0.3)"/>
-    <circle cx="${cx*1.2}" cy="${cy*1.1}" r="${size*0.06}" fill="rgba(0,0,0,0.25)"/>
-    <circle cx="${cx*0.9}" cy="${cy*1.3}" r="${size*0.05}" fill="rgba(0,0,0,0.2)"/>
-  </svg>`;
+  return '<svg width="'+size+'" height="'+size+'" viewBox="0 0 '+size+' '+size+'" xmlns="http://www.w3.org/2000/svg"><polygon points="'+points+'" fill="'+baseCol+'" stroke="#3A2F20" stroke-width="0.8"/><circle cx="'+(cx*0.7)+'" cy="'+(cy*0.7)+'" r="'+(size*0.08)+'" fill="rgba(0,0,0,0.3)"/><circle cx="'+(cx*1.2)+'" cy="'+(cy*1.1)+'" r="'+(size*0.06)+'" fill="rgba(0,0,0,0.25)"/></svg>';
 }
-
 function triggerAsteroidExplosion(cx,cy,size){
-  // Rocky chunks flying out
-  const chunkColors=['#8B7355','#A0926B','#6B5B4A','#5C4A35','#B5A48A','#f80','#fa0'];
-  const chunkCount=isMobile?6:10;
-  for(let i=0;i<chunkCount;i++){
-    const ch=document.createElement('div');
-    ch.className='asteroid-chunk';
-    const cs=2+Math.random()*Math.max(4,size*0.25);
-    ch.style.width=cs+'px'; ch.style.height=cs+'px';
-    const col=chunkColors[Math.floor(Math.random()*chunkColors.length)];
-    ch.style.background=col;
-    ch.style.boxShadow='0 0 '+(cs*2)+'px '+col;
-    ch.style.left=cx+'px'; ch.style.top=cy+'px';
-    document.body.appendChild(ch);
-    const angle=Math.random()*Math.PI*2;
-    const speed=50+Math.random()*150;
-    const dur=400+Math.random()*500;
-    const startT=performance.now();
-    (function animChunk(now){
-      const t=Math.min((now-startT)/dur,1);
-      const ease=1-Math.pow(1-t,3);
-      const dist=speed*ease;
-      const grav=t*t*40;
-      ch.style.left=(cx+Math.cos(angle)*dist)+'px';
-      ch.style.top=(cy+Math.sin(angle)*dist+grav)+'px';
-      ch.style.opacity=String(t<0.5?1:(1-(t-0.5)/0.5));
-      ch.style.transform='rotate('+(t*360)+'deg)';
-      if(t<1) requestAnimationFrame(animChunk);
-      else ch.remove();
-    })(performance.now());
-  }
-  // Small flash
-  const flash=document.createElement('div');
-  flash.className='asteroid-explosion';
-  flash.style.left=cx+'px'; flash.style.top=cy+'px';
-  flash.style.width=(size*2)+'px'; flash.style.height=(size*2)+'px';
-  flash.style.background='radial-gradient(circle,rgba(255,200,50,0.8) 0%,rgba(255,120,0,0.4) 50%,transparent 100%)';
-  flash.style.borderRadius='50%';
-  document.body.appendChild(flash);
-  const fStart=performance.now();
-  (function animF(now){
-    const t=Math.min((now-fStart)/400,1);
-    const s=1+t*2;
-    flash.style.transform='translate(-50%,-50%) scale('+s+')';
-    flash.style.opacity=String(1-t);
-    if(t<1) requestAnimationFrame(animF);
-    else flash.remove();
-  })(performance.now());
+  collisionCount++;playExplosion();
+  const chunkColors=['#8B7355','#A0926B','#6B5B4A','#5C4A35','#B5A48A','#f80','#fa0'];const chunkCount=isMobile?6:10;
+  for(let i=0;i<chunkCount;i++){const ch=document.createElement('div');ch.className='asteroid-chunk';const cs=2+Math.random()*Math.max(4,size*0.25);ch.style.width=cs+'px';ch.style.height=cs+'px';const col=chunkColors[Math.floor(Math.random()*chunkColors.length)];ch.style.background=col;ch.style.boxShadow='0 0 '+(cs*2)+'px '+col;ch.style.left=cx+'px';ch.style.top=cy+'px';document.body.appendChild(ch);const angle=Math.random()*Math.PI*2,speed=50+Math.random()*150,dur=400+Math.random()*500,startT=performance.now();(function animChunk(now){const t=Math.min((now-startT)/dur,1),ease=1-Math.pow(1-t,3),dist=speed*ease,grav=t*t*40;ch.style.left=(cx+Math.cos(angle)*dist)+'px';ch.style.top=(cy+Math.sin(angle)*dist+grav)+'px';ch.style.opacity=String(t<0.5?1:(1-(t-0.5)/0.5));ch.style.transform='rotate('+(t*360)+'deg)';if(t<1)requestAnimationFrame(animChunk);else ch.remove();})(performance.now());}
+  const flash=document.createElement('div');flash.className='asteroid-explosion';flash.style.left=cx+'px';flash.style.top=cy+'px';flash.style.width=(size*2)+'px';flash.style.height=(size*2)+'px';flash.style.background='radial-gradient(circle,rgba(255,200,50,0.8) 0%,rgba(255,120,0,0.4) 50%,transparent 100%)';flash.style.borderRadius='50%';document.body.appendChild(flash);const fStart=performance.now();(function animF(now){const t=Math.min((now-fStart)/400,1),s=1+t*2;flash.style.transform='translate(-50%,-50%) scale('+s+')';flash.style.opacity=String(1-t);if(t<1)requestAnimationFrame(animF);else flash.remove();})(performance.now());
 }
-
 function createAsteroid(){
-  const el=document.createElement('div');
-  el.className='asteroid';
+  const el=document.createElement('div');el.className='asteroid';
   const size=isMobile?(10+Math.random()*12):(14+Math.random()*18);
-  el.innerHTML=buildAsteroidSVG(size);
-  document.body.appendChild(el);
-
-  // Spawn from top or sides, aimed towards center for more collisions
-  const spawnSide=Math.random();
-  let x,y,vx,vy;
-  const centerX=window.innerWidth/2+(Math.random()-0.5)*200;
-  const centerY=window.innerHeight/2+(Math.random()-0.5)*200;
-  if(spawnSide<0.4){
-    // From top
-    x=Math.random()*window.innerWidth;
-    y=-size;
-    const dx=centerX-x, dy=centerY-y;
-    const len=Math.hypot(dx,dy);
-    const spd=2+Math.random()*2;
-    vx=dx/len*spd+(Math.random()-0.5)*0.5;
-    vy=dy/len*spd;
-  } else if(spawnSide<0.55){
-    // From bottom
-    x=Math.random()*window.innerWidth;
-    y=window.innerHeight+size;
-    const dx=centerX-x, dy=centerY-y;
-    const len=Math.hypot(dx,dy);
-    const spd=2+Math.random()*2;
-    vx=dx/len*spd+(Math.random()-0.5)*0.5;
-    vy=dy/len*spd;
-  } else if(spawnSide<0.775){
-    // From left
-    x=-size;
-    y=Math.random()*window.innerHeight;
-    const dx=centerX-x, dy=centerY-y;
-    const len=Math.hypot(dx,dy);
-    const spd=2+Math.random()*2;
-    vx=dx/len*spd;
-    vy=dy/len*spd+(Math.random()-0.5)*0.5;
-  } else {
-    // From right
-    x=window.innerWidth+size;
-    y=Math.random()*window.innerHeight;
-    const dx=centerX-x, dy=centerY-y;
-    const len=Math.hypot(dx,dy);
-    const spd=2+Math.random()*2;
-    vx=dx/len*spd;
-    vy=dy/len*spd+(Math.random()-0.5)*0.5;
-  }
-
-  let rot=Math.random()*360;
-  const rotSpeed=(Math.random()-0.5)*4;
-  const info={el:el, x:x, y:y, size:size, alive:true};
-  activeAsteroids.push(info);
-
-  function animate(){
-    if(!info.alive) return;
-    x+=vx; y+=vy;
-    rot+=rotSpeed;
-    info.x=x; info.y=y;
-    el.style.left=x+'px';
-    el.style.top=y+'px';
-    el.style.transform='rotate('+rot+'deg)';
-
-    // Off screen? Remove
-    if(y>window.innerHeight+50||x<-80||x>window.innerWidth+80){
-      info.alive=false;
-      el.remove();
-      const idx=activeAsteroids.indexOf(info);
-      if(idx>-1) activeAsteroids.splice(idx,1);
-      return;
-    }
-
-    // Check collision with ALL rockets
-    const hitDist=size*0.8+20;
-    const rocketChecks=[
-      {key:'h', respawn:createHorizontalRocket},
-      {key:'h2', respawn:createHorizontalRocket2},
-      {key:'v', respawn:createVerticalRocket},
-      {key:'v2', respawn:createVerticalRocket2},
-      {key:'d1', respawn:createDiagonalRocket1},
-      {key:'d2', respawn:createDiagonalRocket2}
-    ];
-    for(const rc of rocketChecks){
-      const rk=activeRockets[rc.key];
-      if(rk&&rk.alive){
-        const rx=rk.x, ry=rk.y;
-        if(Math.hypot(x-rx, y-ry)<hitDist){
-          info.alive=false;
-          el.remove();
-          const idx=activeAsteroids.indexOf(info);
-          if(idx>-1) activeAsteroids.splice(idx,1);
-          triggerAsteroidExplosion((x+rx)/2,(y+ry)/2,size);
-          rk.alive=false;
-          rk.el.remove();
-          setTimeout(rc.respawn,500);
-          return;
-        }
-      }
-    }
-
+  el.innerHTML=buildAsteroidSVG(size);document.body.appendChild(el);
+  const spawnSide=Math.random();let x,y,vx,vy;
+  const centerX=window.innerWidth/2+(Math.random()-0.5)*200,centerY=window.innerHeight/2+(Math.random()-0.5)*200;
+  if(spawnSide<0.4){x=Math.random()*window.innerWidth;y=-size;const dx=centerX-x,dy=centerY-y,len=Math.hypot(dx,dy),spd=2+Math.random()*2;vx=dx/len*spd+(Math.random()-0.5)*0.5;vy=dy/len*spd;}
+  else if(spawnSide<0.55){x=Math.random()*window.innerWidth;y=window.innerHeight+size;const dx=centerX-x,dy=centerY-y,len=Math.hypot(dx,dy),spd=2+Math.random()*2;vx=dx/len*spd+(Math.random()-0.5)*0.5;vy=dy/len*spd;}
+  else if(spawnSide<0.775){x=-size;y=Math.random()*window.innerHeight;const dx=centerX-x,dy=centerY-y,len=Math.hypot(dx,dy),spd=2+Math.random()*2;vx=dx/len*spd;vy=dy/len*spd+(Math.random()-0.5)*0.5;}
+  else{x=window.innerWidth+size;y=Math.random()*window.innerHeight;const dx=centerX-x,dy=centerY-y,len=Math.hypot(dx,dy),spd=2+Math.random()*2;vx=dx/len*spd;vy=dy/len*spd+(Math.random()-0.5)*0.5;}
+  let rot=Math.random()*360;const rotSpeed=(Math.random()-0.5)*4;
+  const info={el:el,x:x,y:y,size:size,alive:true};activeAsteroids.push(info);asteroidCount++;
+  function animate(){if(!info.alive)return;x+=vx;y+=vy;rot+=rotSpeed;info.x=x;info.y=y;el.style.left=x+'px';el.style.top=y+'px';el.style.transform='rotate('+rot+'deg)';
+    if(y>window.innerHeight+50||x<-80||x>window.innerWidth+80){info.alive=false;el.remove();const idx=activeAsteroids.indexOf(info);if(idx>-1)activeAsteroids.splice(idx,1);return;}
+    const hitDist=size*0.8+20;const rocketChecks=[{key:'h',respawn:createHorizontalRocket},{key:'h2',respawn:createHorizontalRocket2},{key:'v',respawn:createVerticalRocket},{key:'v2',respawn:createVerticalRocket2},{key:'d1',respawn:createDiagonalRocket1},{key:'d2',respawn:createDiagonalRocket2}];
+    for(const rc of rocketChecks){const rk=activeRockets[rc.key];if(rk&&rk.alive){const rx=rk.x,ry=rk.y;if(Math.hypot(x-rx,y-ry)<hitDist){info.alive=false;el.remove();const idx=activeAsteroids.indexOf(info);if(idx>-1)activeAsteroids.splice(idx,1);triggerAsteroidExplosion((x+rx)/2,(y+ry)/2,size);rk.alive=false;rk.el.remove();setTimeout(rc.respawn,500);return;}}}
     requestAnimationFrame(animate);
+  }animate();
+}
+setInterval(createAsteroid,ASTEROID_INTERVAL);
+setInterval(()=>{const burstCount=isMobile?4:7;for(let i=0;i<burstCount;i++)setTimeout(createAsteroid,i*150);},isMobile?8000:5000);
+
+// ═══════════════════════════════════════════
+// UFO — flying saucer with tractor beam
+// ═══════════════════════════════════════════
+(function(){
+  const ufo=document.createElement('div');ufo.className='ufo';
+  ufo.innerHTML='<svg width="50" height="30" viewBox="0 0 50 30" fill="none" xmlns="http://www.w3.org/2000/svg"><ellipse cx="25" cy="18" rx="24" ry="6" fill="rgba(120,180,255,0.3)" opacity="0.5"/><ellipse cx="25" cy="15" rx="20" ry="5" fill="#888" stroke="#666" stroke-width="0.5"/><ellipse cx="25" cy="13" rx="12" ry="7" fill="#aaa" stroke="#999" stroke-width="0.5"/><ellipse cx="25" cy="11" rx="8" ry="4" fill="rgba(100,200,255,0.4)"/><circle cx="14" cy="15" r="1.5" fill="#4f4"><animate attributeName="opacity" values="0.3;1;0.3" dur="0.5s" repeatCount="indefinite"/></circle><circle cx="25" cy="16" r="1.5" fill="#ff4"><animate attributeName="opacity" values="1;0.3;1" dur="0.4s" repeatCount="indefinite"/></circle><circle cx="36" cy="15" r="1.5" fill="#f44"><animate attributeName="opacity" values="0.5;1;0.5" dur="0.6s" repeatCount="indefinite"/></circle><path d="M20 20 L15 30 M30 20 L35 30" stroke="rgba(100,255,200,0.2)" stroke-width="8" opacity="0.3"><animate attributeName="opacity" values="0.1;0.4;0.1" dur="2s" repeatCount="indefinite"/></path></svg>';
+  document.body.appendChild(ufo);
+  let ux=Math.random()*window.innerWidth,uy=50+Math.random()*150;
+  let targetX=Math.random()*window.innerWidth,targetY=50+Math.random()*200;
+  let uPhase=0;
+  function animateUFO(){
+    if(!features.ufo){ufo.style.opacity='0';requestAnimationFrame(animateUFO);return;}
+    ufo.style.opacity='1';
+    const dx=targetX-ux,dy=targetY-uy,dist=Math.hypot(dx,dy);
+    if(dist<5){uPhase++;if(uPhase>60){targetX=Math.random()*window.innerWidth;targetY=50+Math.random()*200;uPhase=0;}}
+    ux+=(dx)*0.008;uy+=(dy)*0.008+Math.sin(Date.now()/1000)*0.3;
+    ufo.style.left=ux+'px';ufo.style.top=uy+'px';
+    ufo.style.transform='rotate('+Math.sin(Date.now()/2000)*5+'deg)';
+    requestAnimationFrame(animateUFO);
+  }animateUFO();
+})();
+
+// ═══════════════════════════════════════════
+// COMET with particle tail
+// ═══════════════════════════════════════════
+(function(){
+  let cometActive=false;
+  function launchComet(){
+    if(!features.comet||cometActive)return;
+    cometActive=true;
+    const comet=document.createElement('div');comet.className='comet';
+    const head=document.createElement('div');
+    head.style.cssText='width:6px;height:6px;background:#fff;border-radius:50%;box-shadow:0 0 10px #aef,0 0 20px #6af;position:absolute;';
+    comet.appendChild(head);document.body.appendChild(comet);
+    const startX=-20,startY=Math.random()*window.innerHeight*0.4;
+    const angle=Math.PI/6+Math.random()*Math.PI/6;
+    const speed=4+Math.random()*3;let dist=0;
+    function animate(){
+      dist+=speed;
+      const cx=startX+Math.cos(angle)*dist,cy=startY+Math.sin(angle)*dist;
+      comet.style.left=cx+'px';comet.style.top=cy+'px';
+      // Tail particles
+      for(let i=0;i<3;i++){
+        const tp=document.createElement('div');tp.className='comet-tail';
+        const ts=1+Math.random()*3;tp.style.width=ts+'px';tp.style.height=ts+'px';
+        tp.style.background='rgba(150,200,255,'+(0.5+Math.random()*0.5)+')';
+        tp.style.boxShadow='0 0 '+(ts*2)+'px rgba(150,200,255,0.5)';
+        tp.style.left=(cx-Math.cos(angle)*Math.random()*15+(Math.random()-0.5)*6)+'px';
+        tp.style.top=(cy-Math.sin(angle)*Math.random()*15+(Math.random()-0.5)*6)+'px';
+        tp.style.position='absolute';tp.style.zIndex='6';
+        document.body.appendChild(tp);
+        const tStart=performance.now();
+        (function fadeTP(now){const t=(now-tStart)/400;tp.style.opacity=String(Math.max(0,1-t));if(t<1)requestAnimationFrame(fadeTP);else tp.remove();})(performance.now());
+      }
+      if(cx>window.innerWidth+50||cy>window.innerHeight+50){comet.remove();cometActive=false;setTimeout(launchComet,15000+Math.random()*15000);return;}
+      requestAnimationFrame(animate);
+    }animate();
   }
-  animate();
+  setTimeout(launchComet,3000+Math.random()*5000);
+})();
+
+// ═══════════════════════════════════════════
+// WORMHOLE — spinning portal
+// ═══════════════════════════════════════════
+(function(){
+  const wh=document.createElement('div');wh.className='wormhole';
+  wh.style.width='80px';wh.style.height='80px';wh.style.opacity='0';
+  const ring1=document.createElement('div');ring1.style.cssText='position:absolute;top:50%;left:50%;width:70px;height:70px;border-radius:50%;border:2px solid rgba(100,200,255,0.4);box-shadow:0 0 15px rgba(100,200,255,0.3),inset 0 0 10px rgba(100,200,255,0.2);animation:wormholeSpin 3s linear infinite;';
+  const ring2=document.createElement('div');ring2.style.cssText='position:absolute;top:50%;left:50%;width:50px;height:50px;border-radius:50%;border:2px solid rgba(200,100,255,0.4);box-shadow:0 0 12px rgba(200,100,255,0.3);animation:wormholeSpin 2s linear infinite reverse;';
+  const core=document.createElement('div');core.style.cssText='position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:20px;height:20px;border-radius:50%;background:radial-gradient(circle,rgba(150,100,255,0.6),transparent);animation:wormholePulse 2s ease-in-out infinite alternate;';
+  wh.appendChild(ring1);wh.appendChild(ring2);wh.appendChild(core);
+  document.body.appendChild(wh);
+  let whX=window.innerWidth*0.2,whY=window.innerHeight*0.7;let whPhase=0,whTimer=0;
+  function animateWormhole(){
+    if(!features.wormhole){wh.style.opacity='0';requestAnimationFrame(animateWormhole);return;}
+    whTimer++;
+    if(whPhase===0){// Fade in
+      const t=Math.min(whTimer/120,1);wh.style.opacity=String(t*0.7);
+      if(t>=1){whPhase=1;whTimer=0;}
+    }else if(whPhase===1){// Active
+      if(whTimer>600){whPhase=2;whTimer=0;}// ~10s active
+    }else if(whPhase===2){// Fade out
+      const t=Math.min(whTimer/120,1);wh.style.opacity=String(0.7*(1-t));
+      if(t>=1){whPhase=3;whTimer=0;}
+    }else{// Wait then reposition
+      wh.style.opacity='0';
+      if(whTimer>600){whX=100+Math.random()*(window.innerWidth-200);whY=100+Math.random()*(window.innerHeight-200);wh.style.left=whX+'px';wh.style.top=whY+'px';whPhase=0;whTimer=0;}
+    }
+    wh.style.left=whX+'px';wh.style.top=whY+'px';
+    requestAnimationFrame(animateWormhole);
+  }
+  wh.style.left=whX+'px';wh.style.top=whY+'px';
+  animateWormhole();
+})();
+
+// ═══════════════════════════════════════════
+// FIREWORKS on the hour
+// ═══════════════════════════════════════════
+function launchFireworks(){
+  if(!features.fireworks)return;
+  const clockRect=clockEl.getBoundingClientRect();
+  const cx=clockRect.left+clockRect.width/2,cy=clockRect.top+clockRect.height/2;
+  for(let b=0;b<5;b++){
+    setTimeout(()=>{
+      playFirework();
+      const bx=cx+(Math.random()-0.5)*200,by=cy+(Math.random()-0.5)*150;
+      const colors=['#ff4444','#44ff44','#4444ff','#ffff44','#ff44ff','#44ffff','#ff8800','#ff0088'];
+      const particleCount=isMobile?15:25;
+      for(let i=0;i<particleCount;i++){
+        const p=document.createElement('div');p.className='firework-particle';
+        const size=2+Math.random()*3;p.style.width=size+'px';p.style.height=size+'px';
+        const col=colors[Math.floor(Math.random()*colors.length)];
+        p.style.background=col;p.style.boxShadow='0 0 '+(size*3)+'px '+col;
+        p.style.left=bx+'px';p.style.top=by+'px';document.body.appendChild(p);
+        const angle=Math.random()*Math.PI*2,speed=40+Math.random()*120,dur=600+Math.random()*800;
+        const pStart=performance.now();
+        (function animFW(now){const t=Math.min((now-pStart)/dur,1),ease=1-Math.pow(1-t,2);
+          const d=speed*ease,grav=t*t*50;
+          p.style.left=(bx+Math.cos(angle)*d)+'px';p.style.top=(by+Math.sin(angle)*d+grav)+'px';
+          p.style.opacity=String(t<0.6?1:(1-(t-0.6)/0.4));
+          if(t<1)requestAnimationFrame(animFW);else p.remove();
+        })(performance.now());
+      }
+    },b*400);
+  }
 }
 
-// Periodic asteroid shower — fast spawning
-setInterval(createAsteroid, ASTEROID_INTERVAL);
-// Frequent burst showers for dramatic effect
-setInterval(()=>{
-  const burstCount=isMobile?4:7;
-  for(let i=0;i<burstCount;i++){
-    setTimeout(createAsteroid, i*150);
-  }
-}, isMobile?8000:5000);
+// ═══════════════════════════════════════════
+// CLICK TO LAUNCH ROCKET
+// ═══════════════════════════════════════════
+document.addEventListener('click',function(e){
+  if(!features.clickLaunch)return;
+  if(e.target.closest('.ui-btn,.settings-panel,.stopwatch-display,.dashboard'))return;
+  initAudio();
+  playLaunch();
+  const rocket=buildRocketDOM();document.body.appendChild(rocket);
+  const sx=e.clientX,sy=e.clientY;
+  let ry=sy,speed=4+Math.random()*3;
+  rocket.style.left=sx+'px';rocket.style.top=ry+'px';rocket.style.transform='rotate(0deg)';
+  function animR(){ry-=speed;speed+=0.1;rocket.style.top=ry+'px';
+    if(ry<-40){rocket.remove();return;}
+    requestAnimationFrame(animR);
+  }animR();
+});
 
+// ═══════════════════════════════════════════
+// UI CONTROLS
+// ═══════════════════════════════════════════
+const themes=['dark','sunset','ocean','aurora','light'];
+let currentTheme=0;
+
+// Theme toggle button
+document.getElementById('btnTheme').addEventListener('click',()=>{
+  currentTheme=(currentTheme+1)%themes.length;
+  document.documentElement.setAttribute('data-theme',themes[currentTheme]);
+  document.getElementById('btnTheme').textContent=themes[currentTheme]==='light'?'☀️':'🌙';
+  document.querySelectorAll('.theme-dot').forEach(d=>{d.classList.toggle('active',d.dataset.t===themes[currentTheme]);});
+});
+
+// Theme dots in settings
+document.querySelectorAll('.theme-dot').forEach(dot=>{
+  dot.addEventListener('click',()=>{
+    const t=dot.dataset.t;currentTheme=themes.indexOf(t);
+    document.documentElement.setAttribute('data-theme',t);
+    document.getElementById('btnTheme').textContent=t==='light'?'☀️':'🌙';
+    document.querySelectorAll('.theme-dot').forEach(d=>d.classList.toggle('active',d.dataset.t===t));
+  });
+});
+
+// Settings panel
+document.getElementById('btnSettings').addEventListener('click',()=>{document.getElementById('settingsPanel').classList.add('open');});
+document.getElementById('closeSettings').addEventListener('click',()=>{document.getElementById('settingsPanel').classList.remove('open');});
+
+// Toggle switches
+document.querySelectorAll('.toggle-switch').forEach(sw=>{
+  sw.addEventListener('click',()=>{
+    sw.classList.toggle('on');
+    const f=sw.dataset.f;
+    features[f]=sw.classList.contains('on');
+    if(f==='sound'&&features.sound)initAudio();
+    if(f==='nebula')nebulaEls.forEach(n=>n.style.display=features.nebula?'block':'none');
+    if(f==='earth')document.getElementById('earthSystem').style.display=features.earth?'block':'none';
+    if(f==='dashboard'){const db=document.getElementById('dashboard');db.classList.toggle('visible',features.dashboard);}
+    if(f==='constellations')drawConstellations();
+    document.getElementById('btnSound').textContent=features.sound?'🔊':'🔇';
+  });
+});
+
+// Sound toggle
+document.getElementById('btnSound').addEventListener('click',()=>{
+  features.sound=!features.sound;
+  if(features.sound)initAudio();
+  document.getElementById('btnSound').textContent=features.sound?'🔊':'🔇';
+  const sw=document.querySelector('.toggle-switch[data-f="sound"]');
+  if(sw)sw.classList.toggle('on',features.sound);
+});
+
+// Stopwatch
+const swDisplay=document.getElementById('stopwatchDisplay');
+const swTimeEl=document.getElementById('swTime');
+let swRunning=false,swStart=0,swElapsed=0,swRAF=null;
+document.getElementById('btnStopwatch').addEventListener('click',()=>{swDisplay.classList.toggle('visible');});
+document.getElementById('swStart').addEventListener('click',()=>{
+  if(!swRunning){swRunning=true;swStart=performance.now()-swElapsed;
+    document.getElementById('swStart').textContent='Pause';
+    (function tickSW(){if(!swRunning)return;swElapsed=performance.now()-swStart;
+      const total=Math.floor(swElapsed);const mins=Math.floor(total/60000).toString().padStart(2,'0');
+      const secs=Math.floor((total%60000)/1000).toString().padStart(2,'0');
+      const ms=Math.floor((total%1000)/10).toString().padStart(2,'0');
+      swTimeEl.textContent=mins+':'+secs+'.'+ms;swRAF=requestAnimationFrame(tickSW);})();
+  }else{swRunning=false;document.getElementById('swStart').textContent='Start';if(swRAF)cancelAnimationFrame(swRAF);}
+});
+document.getElementById('swReset').addEventListener('click',()=>{swRunning=false;swElapsed=0;swTimeEl.textContent='00:00.00';document.getElementById('swStart').textContent='Start';if(swRAF)cancelAnimationFrame(swRAF);});
+
+// Dashboard HUD
+const dashEl=document.getElementById('dashboard');
+const hudEl=document.getElementById('hudContent');
+dashEl.classList.add('visible');
+setInterval(()=>{
+  if(!features.dashboard)return;
+  hudEl.innerHTML='🚀 Rockets: 6<br>☄️ Asteroids: '+activeAsteroids.length+'<br>💥 Collisions: '+collisionCount+'<br>🕳️ BH: '+bhPhase+'<br>📊 FPS: '+fpsVal;
+},500);
+
+// Screenshot
+document.getElementById('btnScreenshot').addEventListener('click',()=>{
+  const flash=document.createElement('div');flash.className='camera-flash';document.body.appendChild(flash);
+  flash.style.opacity='0.8';setTimeout(()=>{flash.style.opacity='0';setTimeout(()=>flash.remove(),200);},100);
+  // Note: html2canvas would be needed for actual screenshot. We show a tip.
+  const tip=document.createElement('div');
+  tip.style.cssText='position:fixed;bottom:60px;left:50%;transform:translateX(-50%);background:var(--ui-bg);color:var(--ui-text);padding:10px 20px;border-radius:8px;z-index:2000;font-size:13px;backdrop-filter:blur(8px);border:1px solid var(--ui-border);';
+  tip.textContent='📸 Use Ctrl+Shift+S (or phone screenshot) to capture!';
+  document.body.appendChild(tip);setTimeout(()=>tip.remove(),3000);
+});
+
+// Share
+document.getElementById('btnShare').addEventListener('click',async()=>{
+  const shareData={title:'Orbit Clock',text:'Check out this amazing space-themed orbit clock!',url:'https://arunimmicrosoft.github.io/orbit-clock/'};
+  try{if(navigator.share){await navigator.share(shareData);}
+  else{await navigator.clipboard.writeText(shareData.url);
+    const tip=document.createElement('div');tip.style.cssText='position:fixed;bottom:60px;left:50%;transform:translateX(-50%);background:var(--ui-bg);color:var(--ui-text);padding:10px 20px;border-radius:8px;z-index:2000;font-size:13px;backdrop-filter:blur(8px);border:1px solid var(--ui-border);';
+    tip.textContent='📋 Link copied to clipboard!';document.body.appendChild(tip);setTimeout(()=>tip.remove(),2000);
+  }}catch(e){}
+});
+
+// ═══════════════════════════════════════════
+// PWA Service Worker Registration
+// ═══════════════════════════════════════════
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('sw.js').catch(()=>{});
+}
 </script>
 </body>
 </html>
